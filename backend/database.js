@@ -1,5 +1,7 @@
 import Database from "better-sqlite3";
 
-const db = new Database("database.db");
+const dbPath = process.env.DATABASE_PATH || "database.db";
+
+const db = new Database(dbPath);
 
 export default db;
