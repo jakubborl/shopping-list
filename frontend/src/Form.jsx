@@ -14,7 +14,7 @@ export default function Form({ nazev }) {
     try {
       console.log(`nazev:`, nazev);
       const response = await axios.post(
-        `http://localhost:8080/posts/${nazev}`,
+        `${import.meta.env.VITE_API_URL}/posts/${nazev}`,
         {
           title,
         }
@@ -30,7 +30,9 @@ export default function Form({ nazev }) {
 
   const deletePost = async (id) => {
     try {
-      await axios.delete(`http://localhost:8080/posts/${nazev}/${id}`);
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/posts/${nazev}/${id}`
+      );
 
       await fetchData();
     } catch (error) {
@@ -39,7 +41,10 @@ export default function Form({ nazev }) {
   };
 
   const fetchData = async () => {
-    const response = await axios.get(`http://localhost:8080/posts/${nazev}`);
+    console.log(`odkaz ${import.meta.env.VITE_API_URL}`);
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/posts/${nazev}`
+    );
 
     setArray(response.data);
 
@@ -57,7 +62,7 @@ export default function Form({ nazev }) {
     setItem("");
   }
   const saveEdit = async (id) => {
-    await axios.put(`http://localhost:8080/posts/${nazev}/${id}`, {
+    await axios.put(`${import.meta.env.VITE_API_URL}/posts/${nazev}/${id}`, {
       title: editTitle,
     });
 
