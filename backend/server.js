@@ -11,11 +11,7 @@ db.exec(`
 `);
 
 const app = express();
-const port = 8080;
-let lists = {
-  lednice: [{ title: "mleko", id: 1 }],
-  skrin: [{ title: "ryze", id: 1 }],
-};
+const port = process.env.PORT || 8080;
 
 const corsOptions = {
   origin: "http://localhost:5173",
