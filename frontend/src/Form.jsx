@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-export default function Form({ nazev }) {
+export default function Form({ nazev, showButton = false }) {
   const [item, setItem] = useState("");
   const [items, setItems] = useState([]);
   const [array, setArray] = useState([]);
@@ -72,6 +72,14 @@ export default function Form({ nazev }) {
     setEditTitle("");
   };
 
+  const movePost = async (id, newList) => {
+    await axios.patch(`${import.meta.env.VITE_API_URL}/posts/${id}/move`, {
+      newList: newList,
+    });
+
+    await fetchData();
+  };
+
   return (
     <>
       <Link to="/" className="button-66">
@@ -133,6 +141,22 @@ export default function Form({ nazev }) {
                   >
                     Upravit
                   </button>
+                  {showButton && (
+                    <>
+                      <button
+                        className="change-btn"
+                        onClick={() => movePost(blog.id, "lednice")}
+                      >
+                        Lednice✅
+                      </button>
+                      <button
+                        className="change-btn"
+                        onClick={() => movePost(blog.id, "skrin")}
+                      >
+                        Skříň✅
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </li>

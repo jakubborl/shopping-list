@@ -90,3 +90,20 @@ app.delete("/posts/:list/:id", (req, res) => {
     message: "Položka smazána",
   });
 });
+
+app.patch("/posts/:id/move", (req, res) => {
+  const { id } = req.params;
+  const { newList } = req.body;
+
+  const statement = db.prepare(`
+    UPDATE posts
+    SET list = ?
+    WHERE id = ?
+  `);
+
+  statement.run(newList, id);
+
+  res.json({
+    message: "Položka přesunuta",
+  });
+});

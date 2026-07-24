@@ -14,20 +14,9 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="lednice" element={<Form nazev="lednice" />} />
         <Route path="skrin" element={<Form nazev="skrin" />} />
-        <Route path="nakup" element={<Form nazev="nakup" />} />
+        <Route path="nakup" element={<Form nazev="nakup" showButton />} />
       </Routes>
     </div>
-    // <div>
-    //   <h1>Backend with Express & Node</h1>
-    //   <ul>
-    //     {array.map((blog, index) => (
-    //       <li key={index}>
-    //         <p>{blog.title}</p>
-    //         <p>{blog.content}</p>
-    //       </li>
-    //     ))}
-    //   </ul>
-    // </div>
   );
 }
 
