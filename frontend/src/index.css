@@ -110,7 +110,7 @@
   line-height: 24px;
   margin: 0;
   height: 50px;
-  width: 20px;
+  width: 160px;
   padding: 16px 20px;
   position: relative;
   text-align: center;
@@ -126,12 +126,6 @@
   
 }
 
-@media (min-width: 768px) {
-  .button-66 {
-    padding: 16px 44px;
-    min-width: 150px;
-  }
-}
 .row{
   display: flex;
   align-items: center;
@@ -227,3 +221,18 @@ ul li::before{
   background: #d0d0d0;
 }
 
+
+@media (max-width: 768px) {
+  .button-66 {
+    padding: 16px 44px;
+    min-width: 60px;
+  }
+
+  .homepage {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    gap: 10px;
+  }
+}
