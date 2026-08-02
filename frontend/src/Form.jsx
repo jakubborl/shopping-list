@@ -1,27 +1,54 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
-export default function Form({ nazev, showButton = false }) {
+export default function Form({ listId, showButton = false }) {
   const [item, setItem] = useState("");
   const [items, setItems] = useState([]);
   const [array, setArray] = useState([]);
   const [title, setTitle] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
+  const [lists, setList] = useState(null);
+  const { id } = useParams();
+  console.log(id);
+
+  const fetchList = async () => {
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/lists/${id}`
+    );
+
+    setList(response.data);
+  };
+  useEffect(() => {
+    fetchList();
+  }, [id]);
+
+  const fetchData = async () => {
+    console.log(`odkaz ${import.meta.env.VITE_API_URL}`);
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/lists/${id}/items`
+    );
+
+    setArray(response.data);
+    console.log("array:", response);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const addPost = async () => {
     try {
-      console.log(`nazev:`, nazev);
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/posts/${nazev}`,
+        `${import.meta.env.VITE_API_URL}/lists/${id}/items`,
         {
           title,
         }
       );
       await fetchData();
       setTitle("");
-      console.log(`nazev:`, nazev);
+
       console.log(response.data);
     } catch (error) {
       console.error(error);
@@ -30,30 +57,13 @@ export default function Form({ nazev, showButton = false }) {
 
   const deletePost = async (id) => {
     try {
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/posts/${nazev}/${id}`
-      );
+      await axios.delete(`${import.meta.env.VITE_API_URL}/items/${id}`);
 
       await fetchData();
     } catch (error) {
       console.error(error);
     }
   };
-
-  const fetchData = async () => {
-    console.log(`odkaz ${import.meta.env.VITE_API_URL}`);
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/posts/${nazev}`
-    );
-
-    setArray(response.data);
-
-    console.log("data:", response.data);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   function addItem(e) {
     e.preventDefault();
@@ -62,7 +72,7 @@ export default function Form({ nazev, showButton = false }) {
     setItem("");
   }
   const saveEdit = async (id) => {
-    await axios.put(`${import.meta.env.VITE_API_URL}/posts/${nazev}/${id}`, {
+    await axios.put(`${import.meta.env.VITE_API_URL}/items/${id}`, {
       title: editTitle,
     });
 
@@ -86,7 +96,7 @@ export default function Form({ nazev, showButton = false }) {
         Domů
       </Link>
       <div className="lednice">
-        <h2>Seznam {nazev}</h2>
+        <h2>Seznam {lists?.name}</h2>
         <form onSubmit={addItem}>
           <div className="row">
             <input
@@ -95,7 +105,6 @@ export default function Form({ nazev, showButton = false }) {
               placeholder="Přidat položku"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              onChangeCapture={console.log("title:", title)}
             />
             <button className="button-66" onClick={addPost}>
               Přidat
@@ -141,7 +150,7 @@ export default function Form({ nazev, showButton = false }) {
                   >
                     Upravit
                   </button>
-                  {showButton && (
+                  {/* {showButton && (
                     <>
                       <button
                         className="change-btn"
@@ -156,7 +165,7 @@ export default function Form({ nazev, showButton = false }) {
                         Skříň✅
                       </button>
                     </>
-                  )}
+                  )} */}
                 </>
               )}
             </li>
@@ -166,6 +175,7 @@ export default function Form({ nazev, showButton = false }) {
     </>
   );
 }
+
 // <div>
 //   <h1>Backend with Express & Node</h1>
 //   <ul>

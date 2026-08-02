@@ -1,13 +1,20 @@
 
 
-
-
-.homepage {
+.page {
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  gap: 10px;
+}
+
+.homepage {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 
@@ -228,11 +235,16 @@ ul li::before{
     min-width: 60px;
   }
 
+  
+}
+@media (max-width: 900px) {
   .homepage {
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .homepage {
+    grid-template-columns: 1fr;
   }
 }

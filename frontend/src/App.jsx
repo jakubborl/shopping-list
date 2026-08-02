@@ -8,16 +8,34 @@ import { Route, Routes } from "react-router-dom";
 import "./index.css";
 
 function App() {
+  // const [lists, setLists] = useState([]);
+
+  // const fetchData = async () => {
+  //   try {
+  //     const response = await axios.get(`${import.meta.env.VITE_API_URL}/lists`);
+  //     setLists(response.data);
+  //   } catch (error) {
+  //     console.log("Error", error);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   fetchData();
+  // }, []);
+
   return (
     <div className="App">
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="lednice" element={<Form nazev="lednice" />} />
-        <Route path="skrin" element={<Form nazev="skrin" />} />
-        <Route path="nakup" element={<Form nazev="nakup" showButton />} />
+        <Route path="/list/:id" element={<Form />} />
       </Routes>
     </div>
   );
 }
 
+{
+  /* <Route path="1" element={<Form nazev="nakup" showButton />} />
+<Route path="2" element={<Form nazev="lednice" />} />
+<Route path="3" element={<Form nazev="skrin" />} /> */
+}
 export default App;
