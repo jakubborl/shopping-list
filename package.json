@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "better-sqlite3": "^12.11.1"
+    "better-sqlite3": "^12.11.1",
+    "lucide-react": "^1.31.0"
   }
 }

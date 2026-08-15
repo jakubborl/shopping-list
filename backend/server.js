@@ -41,7 +41,7 @@ const port = process.env.PORT || 8080;
 const corsOptions = {
   origin: [
     "http://localhost:5173",
-    "https://shopping-list-gamma-one.vercel.app",
+    // "https://shopping-list-gamma-one.vercel.app",
   ],
 };
 
@@ -53,6 +53,33 @@ app.get("/lists", (req, res) => {
 
   const lists = statement.all();
   res.json(lists);
+});
+
+app.get("/lists/:listId", (req, res) => {
+  const { listId } = req.params;
+
+  const statement = db.prepare(`
+  SELECT *
+  FROM lists
+  WHERE id = ?
+  `);
+
+  const list = statement.get(listId);
+
+  res.json(list);
+});
+
+app.get("/lists/:listId/items", (req, res) => {
+  const { listId } = req.params;
+
+  console.log("listId:", listId);
+
+  const statement = db.prepare(`
+  SELECT * FROM items
+  WHERE list_id = ?
+  `);
+  const items = statement.all(listId);
+  res.json(items);
 });
 
 app.post("/lists", (req, res) => {
@@ -75,31 +102,50 @@ app.post("/lists", (req, res) => {
   });
 });
 
-app.get("/lists/:listId", (req, res) => {
-  const { listId } = req.params;
+app.delete("/lists/:id", (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({
+      error: "List-id is required",
+    });
+  }
+  console.log("Mažu seznam:", id);
+  const deleteItems = db.prepare(`
+  DELETE FROM items
+  WHERE list_id = ?
+`);
 
-  const statement = db.prepare(`
-    SELECT *
-    FROM lists
-    WHERE id = ?
-  `);
+  deleteItems.run(id);
 
-  const list = statement.get(listId);
+  const deleteList = db.prepare(`
+  DELETE FROM lists
+  WHERE id = ?
+`);
 
-  res.json(list);
+  const result = deleteList.run(id);
+  res.json({
+    message: "Položka smazána",
+  });
 });
 
-app.get("/lists/:listId/items", (req, res) => {
-  const { listId } = req.params;
-
-  console.log("listId:", listId);
-
-  const statement = db.prepare(`
-  SELECT * FROM items
-  WHERE list_id = ?
-  `);
-  const items = statement.all(listId);
-  res.json(items);
+app.put("/lists/:id", (req, res) => {
+  console.log("PUT LIST", req.params, req.body);
+  const { id } = req.params;
+  const { name } = req.body;
+  if (!name?.trim()) {
+    return res.status(400).json({
+      error: "name is required",
+    });
+  } else {
+    const statement = db.prepare(`
+      UPDATE lists
+      SET name = ?
+      WHERE id = ? `);
+    const result = statement.run(name, id);
+    res.json({
+      message: "Název seznamu upraven",
+    });
+  }
 });
 
 app.post("/lists/:listId/items", (req, res) => {

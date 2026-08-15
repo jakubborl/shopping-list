@@ -10,6 +10,7 @@ export default function Form({ listId, showButton = false }) {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [lists, setList] = useState(null);
+
   const { id } = useParams();
   console.log(id);
 
