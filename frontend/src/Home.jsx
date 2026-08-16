@@ -5,6 +5,7 @@ import axios from "axios";
 import ListDialog from "./ListDialog";
 import DeleteListDialog from "./DeleteListDialog";
 import { MoreVertical, Pencil, Trash, Trash2 } from "lucide-react";
+import ActionMenu from "./ActionMenu";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -118,30 +119,20 @@ export default function Home() {
                 <MoreVertical />
               </button>
               {activeMenu === item.id && (
-                <div className="menu" ref={modalRef}>
-                  <button
-                    className="menu-item"
-                    onClick={(e) => {
-                      e.stopPropagation(),
-                        setEditCurList(true),
-                        setSelectedList(item);
-                    }}
-                  >
-                    <Pencil size={18} />
-                    <span>Přejmenovat</span>
-                  </button>
-                  <button
-                    className="menu-item"
-                    onClick={(e) => {
-                      setShowCnclForm(true);
-                      setSelectedList(item);
-                      e.stopPropagation();
-                    }}
-                  >
-                    <Trash2 size={18} />
-                    <span>Smazat</span>
-                  </button>
-                </div>
+                <ActionMenu
+                  onEdit={(e) => {
+                    e.stopPropagation();
+                    setEditCurList(true);
+                    setSelectedList(item);
+                  }}
+                  onDelete={(e) => {
+                    e.stopPropagation();
+                    setShowCnclForm(true);
+                    setSelectedList(item);
+                  }}
+                  divName={"menu"}
+                  onShowMenu={() => setActiveMenu(null)}
+                />
               )}
             </div>
           </div>

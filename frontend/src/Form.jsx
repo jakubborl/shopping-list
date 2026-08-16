@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import ActionMenu from "./ActionMenu";
 
 export default function Form({ listId, showButton = false }) {
   const [item, setItem] = useState("");
@@ -10,6 +12,9 @@ export default function Form({ listId, showButton = false }) {
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState("");
   const [lists, setList] = useState(null);
+  const [activeMenu, setActiveMenu] = useState(null);
+
+  const modalRef = useRef();
 
   const { id } = useParams();
   console.log(id);
@@ -91,6 +96,26 @@ export default function Form({ listId, showButton = false }) {
     await fetchData();
   };
 
+  function handleMenuClick(e, item) {
+    e.stopPropagation();
+
+    if (activeMenu === item.id) {
+      setActiveMenu(null);
+    } else {
+      setActiveMenu(item.id);
+    }
+  }
+
+  useEffect(() => {
+    function handler(event) {
+      if (!modalRef.current?.contains(event.target)) {
+        setActiveMenu(null);
+      }
+    }
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
+
   return (
     <>
       <Link to="/" className="button-66">
@@ -136,37 +161,24 @@ export default function Form({ listId, showButton = false }) {
               ) : (
                 <>
                   {blog.title}
-                  <button
-                    className="close-btn"
-                    onClick={() => deletePost(blog.id)}
-                  >
-                    ×
+                  <button onClick={(e) => handleMenuClick(e, blog)}>
+                    <MoreVertical />
                   </button>
-                  <button
-                    className="change-btn"
-                    onClick={() => {
-                      setEditingId(blog.id);
-                      setEditTitle(blog.title);
-                    }}
-                  >
-                    Upravit
-                  </button>
-                  {/* {showButton && (
-                    <>
-                      <button
-                        className="change-btn"
-                        onClick={() => movePost(blog.id, "lednice")}
-                      >
-                        Lednice✅
-                      </button>
-                      <button
-                        className="change-btn"
-                        onClick={() => movePost(blog.id, "skrin")}
-                      >
-                        Skříň✅
-                      </button>
-                    </>
-                  )} */}
+                  {activeMenu === blog.id && (
+                    <div ref={modalRef}>
+                      <ActionMenu
+                        onEdit={() => {
+                          setEditingId(blog.id);
+                          setEditTitle(blog.title);
+                        }}
+                        onDelete={() => {
+                          deletePost(blog.id);
+                        }}
+                        divName={"form-menu"}
+                        onShowMenu={() => setActiveMenu(null)}
+                      />
+                    </div>
+                  )}
                 </>
               )}
             </li>
@@ -175,29 +187,4 @@ export default function Form({ listId, showButton = false }) {
       </div>
     </>
   );
-}
-
-// <div>
-//   <h1>Backend with Express & Node</h1>
-//   <ul>
-//     {array.map((blog, index) => (
-//       <li key={index}>
-//         <p>{blog.title}</p>
-//         <p>{blog.content}</p>
-//       </li>
-//     ))}
-//   </ul>
-// </div>
-
-{
-  /* <ul>
-        {items.map((item, index) => (
-          <li key={index}>
-            {item}
-            <button className="close-btn" onClick={() => onDeleteItems(index)}>
-              ×
-            </button>
-          </li>
-        ))}
-      </ul> */
 }

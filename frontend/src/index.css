@@ -5,21 +5,46 @@
   
   box-shadow:0 10px 30px rgba(0,0,0,.12);
   
-  padding: 6px;
+  padding: 10px;
   
   width: 180px;
   position: absolute;
+  
   top: calc(100% + 8px);
   right: 0;
+
   
 }
+
+.form-menu {
+  background: white;
+
+  border-radius: 12px;
+  
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+  
+  padding: 10px;
+  
+  
+  width: 180px;
+  
+  
+}
+.menu-buttons{
+  display: flex;
+  flex-direction: column;
+  gap: 10px
+  
+}
+
+
 .menu-item{
   padding: 10px 14px;
-  
+  border: none;
   display: flex;
-
-  gap: 10px;
-
+  border-radius: 10px;
+  gap: 13px;
+  width: 160px;
   align-items: center;
 
   cursor: pointer;
@@ -267,6 +292,7 @@ ul li{
   align-items: center;
   display: flex;
   gap: 10px;
+  height: 70px;
 }
 
 ul li::before{
