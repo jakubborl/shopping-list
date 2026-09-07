@@ -6,7 +6,9 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     list_id INTEGER NOT NULL,
-    title TEXT NOT NULL
+    title TEXT NOT NULL,
+    completed INTEGER NOT NULL DEFAULT 0
+    
   )
 `);
 
@@ -39,6 +41,7 @@ app.use(express.json());
 const port = process.env.PORT || 8080;
 
 const corsOptions = {
+  // origin: ["http://localhost:5173"],
   origin: ["https://shopping-list-gamma-one.vercel.app"],
 };
 
@@ -74,6 +77,7 @@ app.get("/lists/:listId/items", (req, res) => {
   const statement = db.prepare(`
   SELECT * FROM items
   WHERE list_id = ?
+  ORDER BY id DESC
   `);
   const items = statement.all(listId);
   res.json(items);
@@ -195,6 +199,31 @@ app.put("/items/:id", (req, res) => {
       message: "Příspěvek upraven",
     });
   }
+});
+
+app.patch("/items/:id", (req, res) => {
+  console.log("BODY:", req.body);
+  console.log("TYPE:", typeof req.body.completed);
+  const { id } = req.params;
+  const { completed } = req.body;
+
+  if (typeof completed !== "boolean") {
+    return res.status(400).json({
+      error: "completed must be boolean",
+    });
+  }
+
+  const statement = db.prepare(`
+    UPDATE items
+    SET completed = ?
+    WHERE id = ?
+  `);
+
+  statement.run(completed ? 1 : 0, id);
+
+  res.json({
+    message: "Completed upraven",
+  });
 });
 
 // app.put("/posts/:list/:id", (req, res) => {

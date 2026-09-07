@@ -115,7 +115,10 @@ export default function Home() {
               onClick={() => navigate(`/list/${item.id}`)}
             >
               <div className="list-info">{item.name}</div>
-              <button onClick={(e) => handleMenuClick(e, item)}>
+              <button
+                className="btn-vertical"
+                onClick={(e) => handleMenuClick(e, item)}
+              >
                 <MoreVertical />
               </button>
               {activeMenu === item.id && (

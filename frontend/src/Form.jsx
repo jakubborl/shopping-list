@@ -13,11 +13,13 @@ export default function Form({ listId, showButton = false }) {
   const [editTitle, setEditTitle] = useState("");
   const [lists, setList] = useState(null);
   const [activeMenu, setActiveMenu] = useState(null);
+  const activeTasks = array.filter((task) => task.completed === 0);
+  const completedTasks = array.filter((task) => task.completed === 1);
+  const [animatingId, setAnimatingId] = useState(null);
 
   const modalRef = useRef();
 
   const { id } = useParams();
-  console.log(id);
 
   const fetchList = async () => {
     const response = await axios.get(
@@ -31,13 +33,11 @@ export default function Form({ listId, showButton = false }) {
   }, [id]);
 
   const fetchData = async () => {
-    console.log(`odkaz ${import.meta.env.VITE_API_URL}`);
     const response = await axios.get(
       `${import.meta.env.VITE_API_URL}/lists/${id}/items`
     );
 
     setArray(response.data);
-    console.log("array:", response);
   };
 
   useEffect(() => {
@@ -54,8 +54,6 @@ export default function Form({ listId, showButton = false }) {
       );
       await fetchData();
       setTitle("");
-
-      console.log(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -116,6 +114,31 @@ export default function Form({ listId, showButton = false }) {
     return () => document.removeEventListener("click", handler);
   }, []);
 
+  const toggleCompleted = async (id, currentCompleted) => {
+    setAnimatingId(id);
+
+    setTimeout(async () => {
+      try {
+        const newCompleted = currentCompleted === 1 ? false : true;
+
+        await axios.patch(`${import.meta.env.VITE_API_URL}/items/${id}`, {
+          completed: newCompleted,
+        });
+
+        setArray((prev) =>
+          prev.map((task) =>
+            task.id === id ? { ...task, completed: newCompleted ? 1 : 0 } : task
+          )
+        );
+
+        setAnimatingId(null);
+      } catch (error) {
+        console.error(error);
+        setAnimatingId(null);
+      }
+    }, 600);
+  };
+
   return (
     <>
       <Link to="/" className="button-66">
@@ -137,11 +160,11 @@ export default function Form({ listId, showButton = false }) {
             </button>
           </div>
         </form>
-
-        <ul>
-          {array.map((blog) => (
-            <li key={blog.id}>
-              {editingId === blog.id ? (
+        <h2>Nesplněné</h2>
+        <ul className="active-tasks-list">
+          {activeTasks.map((task) => (
+            <li className="task-card" key={task.id}>
+              {editingId === task.id ? (
                 <>
                   <input
                     className="change"
@@ -153,26 +176,46 @@ export default function Form({ listId, showButton = false }) {
 
                   <button
                     className="change-btn"
-                    onClick={() => saveEdit(blog.id)}
+                    onClick={() => saveEdit(task.id)}
                   >
                     Uložit
                   </button>
                 </>
               ) : (
                 <>
-                  {blog.title}
-                  <button onClick={(e) => handleMenuClick(e, blog)}>
+                  <div className="checkbox-wrapper-15">
+                    <input
+                      className="inp-cbx"
+                      id={`cbx-${task.id}`}
+                      type="checkbox"
+                      style={{ display: "none" }}
+                      checked={task.completed === 1 || animatingId === task.id}
+                      onChange={() => toggleCompleted(task.id, task.completed)}
+                    />
+                    <label className="cbx" htmlFor={`cbx-${task.id}`}>
+                      <span>
+                        <svg width="12px" height="9px" viewBox="0 0 12 9">
+                          <polyline points="1 5 4 8 11 1"></polyline>
+                        </svg>
+                      </span>
+                      <span>{task.title}</span>
+                    </label>
+                  </div>
+                  <button
+                    className="btn-vertical"
+                    onClick={(e) => handleMenuClick(e, task)}
+                  >
                     <MoreVertical />
                   </button>
-                  {activeMenu === blog.id && (
+                  {activeMenu === task.id && (
                     <div ref={modalRef}>
                       <ActionMenu
                         onEdit={() => {
-                          setEditingId(blog.id);
-                          setEditTitle(blog.title);
+                          setEditingId(task.id);
+                          setEditTitle(task.title);
                         }}
                         onDelete={() => {
-                          deletePost(blog.id);
+                          deletePost(task.id);
                         }}
                         divName={"form-menu"}
                         onShowMenu={() => setActiveMenu(null)}
@@ -184,7 +227,64 @@ export default function Form({ listId, showButton = false }) {
             </li>
           ))}
         </ul>
+        <h2 className="completed-title">Splněné</h2>
+        <ul className="active-tasks-list">
+          {completedTasks.map((task) => (
+            <li className="task-card" key={task.id}>
+              <div className="checkbox-wrapper-15">
+                <input
+                  className="inp-cbx"
+                  id={`cbx-${task.id}`}
+                  type="checkbox"
+                  style={{ display: "none" }}
+                  checked={task.completed === 1 || animatingId === task.id}
+                  onChange={() => toggleCompleted(task.id, task.completed)}
+                />
+                <label className="cbx" htmlFor={`cbx-${task.id}`}>
+                  <span>
+                    <svg width="12px" height="9px" viewBox="0 0 12 9">
+                      <polyline points="1 5 4 8 11 1"></polyline>
+                    </svg>
+                  </span>
+                  <span>
+                    {task.title} {"| "}
+                    {task.completed}
+                  </span>
+                </label>
+              </div>
+              <button
+                className="btn-vertical"
+                onClick={(e) => handleMenuClick(e, task)}
+              >
+                <MoreVertical />
+              </button>
+              {activeMenu === task.id && (
+                <div ref={modalRef}>
+                  <ActionMenu
+                    onEdit={() => {
+                      setEditingId(task.id);
+                      setEditTitle(task.title);
+                    }}
+                    onDelete={() => {
+                      deletePost(task.id);
+                    }}
+                    divName={"form-menu"}
+                    onShowMenu={() => setActiveMenu(null)}
+                  />
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
     </>
   );
+}
+{
+  /* <input
+                    type="checkbox"
+                    checked={item.completed}
+                    onChange={() => toggleCompleted(item.id, !item.completed)}
+                  />
+                  <span>{task.title}</span> */
 }
