@@ -12,6 +12,17 @@ db.exec(`
   )
 `);
 
+const columns = db.prepare(`PRAGMA table_info(items)`).all();
+
+const hasCompleted = columns.some((column) => column.name === "completed");
+
+if (!hasCompleted) {
+  db.exec(`
+    ALTER TABLE items
+    ADD COLUMN completed INTEGER NOT NULL DEFAULT 0
+  `);
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
