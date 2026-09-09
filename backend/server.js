@@ -74,7 +74,7 @@ app.use(express.json());
 const port = process.env.PORT || 8080;
 
 const corsOptions = {
-  origin: ["http://localhost:5173"],
+  origin: ["https://shopping-list-gamma-one.vercel.app"],
   // origin: ["https://shopping-list-gamma-one.vercel.app"],
 };
 
