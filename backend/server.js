@@ -2,341 +2,361 @@ import express from "express";
 import cors from "cors";
 import db from "./database.js";
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    list_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    completed INTEGER NOT NULL DEFAULT 0
-    
-  )
-`);
+// db.exec(`
+//   CREATE TABLE IF NOT EXISTS items (
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     list_id INTEGER NOT NULL,
+//     title TEXT NOT NULL,
+//     completed INTEGER NOT NULL DEFAULT 0
 
-const columns = db.prepare(`PRAGMA table_info(items)`).all();
+//   )
+// `);
 
-const hasCompleted = columns.some((column) => column.name === "completed");
+// const columns = db.prepare(`PRAGMA table_info(items)`).all();
 
-if (!hasCompleted) {
-  db.exec(`
-    ALTER TABLE items
-    ADD COLUMN completed INTEGER NOT NULL DEFAULT 0
+// const hasCompleted = columns.some((column) => column.name === "completed");
+
+// if (!hasCompleted) {
+//   db.exec(`
+//     ALTER TABLE items
+//     ADD COLUMN completed INTEGER NOT NULL DEFAULT 0
+//   `);
+// }
+
+// db.exec(`
+//   CREATE TABLE IF NOT EXISTS posts (
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     list TEXT NOT NULL,
+//     title TEXT NOT NULL
+//   )
+// `);
+
+// db.exec(`
+//   CREATE TABLE IF NOT EXISTS lists (
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     name TEXT NOT NULL UNIQUE
+//   )
+// `);
+// // db.exec("DELETE FROM lists");
+// // db.exec("DELETE FROM sqlite_sequence WHERE name = 'lists';");
+
+// db.exec(`
+//   INSERT OR IGNORE INTO lists (name) VALUES ('Nákup');
+//   INSERT OR IGNORE INTO lists (name) VALUES ('Lednice');
+//   INSERT OR IGNORE INTO lists (name) VALUES ('Skříň');
+
+//   `);
+
+const app = express();
+
+async function initDatabase() {
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS lists (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      favorite INTEGER NOT NULL DEFAULT 0
+    )
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS items (
+      id SERIAL PRIMARY KEY,
+      list_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      completed INTEGER NOT NULL DEFAULT 0
+    )
   `);
 }
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS posts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    list TEXT NOT NULL,
-    title TEXT NOT NULL
-  )
-`);
+initDatabase();
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS lists (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE
-  )
-`);
-// db.exec("DELETE FROM lists");
-// db.exec("DELETE FROM sqlite_sequence WHERE name = 'lists';");
-
-db.exec(`
-  INSERT OR IGNORE INTO lists (name) VALUES ('Nákup');
-  INSERT OR IGNORE INTO lists (name) VALUES ('Lednice');
-  INSERT OR IGNORE INTO lists (name) VALUES ('Skříň');
-  
-  `);
-
-const app = express();
 app.use(express.json());
 const port = process.env.PORT || 8080;
 
 const corsOptions = {
-  // origin: ["http://localhost:5173"],
-  origin: ["https://shopping-list-gamma-one.vercel.app"],
+  origin: ["http://localhost:5173"],
+  // origin: ["https://shopping-list-gamma-one.vercel.app"],
 };
 
 app.use(cors(corsOptions));
 
-app.get("/lists", (req, res) => {
-  const statement = db.prepare(`
-    SELECT * FROM lists `);
-
-  const lists = statement.all();
-  res.json(lists);
-});
-
-app.get("/lists/:listId", (req, res) => {
-  const { listId } = req.params;
-
-  const statement = db.prepare(`
-  SELECT *
-  FROM lists
-  WHERE id = ?
-  `);
-
-  const list = statement.get(listId);
-
-  res.json(list);
-});
-
-app.get("/lists/:listId/items", (req, res) => {
-  const { listId } = req.params;
-
-  console.log("listId:", listId);
-
-  const statement = db.prepare(`
-  SELECT * FROM items
-  WHERE list_id = ?
-  ORDER BY id DESC
-  `);
-  const items = statement.all(listId);
-  res.json(items);
-});
-
-app.post("/lists", (req, res) => {
-  const { name } = req.body;
-  if (!name?.trim()) {
-    return res.status(400).json({
-      error: "Name is required",
-    });
-  }
-  const statement = db.prepare(`
-
-    INSERT INTO lists ( name)
-    VALUES (?)
-    
+app.get("/lists", async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT * FROM lists
     `);
-  const result = statement.run(name);
-  res.json({
-    id: result.lastInsertRowid,
-    name: name,
-  });
-});
 
-app.delete("/lists/:id", (req, res) => {
-  const { id } = req.params;
-  if (!id) {
-    return res.status(400).json({
-      error: "List-id is required",
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
     });
   }
-  console.log("Mažu seznam:", id);
-  const deleteItems = db.prepare(`
-  DELETE FROM items
-  WHERE list_id = ?
-`);
-
-  deleteItems.run(id);
-
-  const deleteList = db.prepare(`
-  DELETE FROM lists
-  WHERE id = ?
-`);
-
-  const result = deleteList.run(id);
-  res.json({
-    message: "Položka smazána",
-  });
 });
 
-app.put("/lists/:id", (req, res) => {
-  console.log("PUT LIST", req.params, req.body);
-  const { id } = req.params;
-  const { name } = req.body;
-  if (!name?.trim()) {
-    return res.status(400).json({
-      error: "name is required",
+app.get("/lists/:listId", async (req, res) => {
+  try {
+    const { listId } = req.params;
+
+    const result = await db.query(
+      `
+        SELECT *
+        FROM lists
+        WHERE id = $1
+      `,
+      [listId]
+    );
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
     });
-  } else {
-    const statement = db.prepare(`
-      UPDATE lists
-      SET name = ?
-      WHERE id = ? `);
-    const result = statement.run(name, id);
+  }
+});
+
+app.get("/lists/:listId/items", async (req, res) => {
+  try {
+    const { listId } = req.params;
+
+    console.log("listId:", listId);
+
+    const result = await db.query(
+      `
+        SELECT *
+        FROM items
+        WHERE list_id = $1
+        ORDER BY id DESC
+      `,
+      [listId]
+    );
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
+    });
+  }
+});
+
+app.post("/lists", async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name?.trim()) {
+      return res.status(400).json({
+        error: "Name is required",
+      });
+    }
+
+    const result = await db.query(
+      `
+        INSERT INTO lists (name)
+        VALUES ($1)
+        RETURNING id
+      `,
+      [name]
+    );
+
+    res.json({
+      id: result.rows[0].id,
+      name: name,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
+    });
+  }
+});
+
+app.delete("/lists/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        error: "List-id is required",
+      });
+    }
+
+    console.log("Mažu seznam:", id);
+
+    await db.query(
+      `
+        DELETE FROM items
+        WHERE list_id = $1
+      `,
+      [id]
+    );
+
+    await db.query(
+      `
+        DELETE FROM lists
+        WHERE id = $1
+      `,
+      [id]
+    );
+
+    res.json({
+      message: "Seznam smazán",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
+    });
+  }
+});
+
+app.put("/lists/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    if (!name?.trim()) {
+      return res.status(400).json({
+        error: "name is required",
+      });
+    }
+
+    await db.query(
+      `
+        UPDATE lists
+        SET name = $1
+        WHERE id = $2
+      `,
+      [name, id]
+    );
+
     res.json({
       message: "Název seznamu upraven",
     });
-  }
-});
-
-app.post("/lists/:listId/items", (req, res) => {
-  const { listId } = req.params;
-  const { title } = req.body;
-  if (!title?.trim()) {
-    return res.status(400).json({
-      error: "Title is required",
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
     });
   }
-  const statement = db.prepare(`
-    INSERT INTO items (list_id, title)
-    VALUES (?, ?)
-    
-    `);
-  const result = statement.run(listId, title);
-  res.json({
-    id: result.lastInsertRowid,
-    list_id: listId,
-    title: title,
-  });
 });
 
-app.delete("/items/:id", (req, res) => {
-  const { id } = req.params;
-  const statement = db.prepare(`
-    DELETE FROM items
-    WHERE id = ? 
-  `);
-  const result = statement.run(id);
-  res.json({
-    message: "Položka smazána",
-  });
-});
+app.post("/lists/:listId/items", async (req, res) => {
+  try {
+    const { listId } = req.params;
+    const { title } = req.body;
 
-app.put("/items/:id", (req, res) => {
-  const { id } = req.params;
-  const { title } = req.body;
-  if (!title?.trim()) {
-    return res.status(400).json({
-      error: "Title is required",
+    if (!title?.trim()) {
+      return res.status(400).json({
+        error: "Title is required",
+      });
+    }
+
+    const result = await db.query(
+      `
+        INSERT INTO items (list_id, title)
+        VALUES ($1, $2)
+        RETURNING id, list_id, title, completed
+      `,
+      [listId, title]
+    );
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
     });
-  } else {
-    const statement = db.prepare(`
-      UPDATE items
-      SET title = ?
-      WHERE id = ? `);
-    const result = statement.run(title, id);
+  }
+});
+
+app.delete("/items/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await db.query(
+      `
+        DELETE FROM items
+        WHERE id = $1
+      `,
+      [id]
+    );
+
     res.json({
-      message: "Příspěvek upraven",
+      message: "Položka smazána",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
     });
   }
 });
 
-app.patch("/items/:id", (req, res) => {
-  console.log("BODY:", req.body);
-  console.log("TYPE:", typeof req.body.completed);
-  const { id } = req.params;
-  const { completed } = req.body;
+app.put("/items/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title } = req.body;
 
-  if (typeof completed !== "boolean") {
-    return res.status(400).json({
-      error: "completed must be boolean",
+    if (!title?.trim()) {
+      return res.status(400).json({
+        error: "Title is required",
+      });
+    }
+
+    await db.query(
+      `
+        UPDATE items
+        SET title = $1
+        WHERE id = $2
+      `,
+      [title, id]
+    );
+
+    res.json({
+      message: "Položka upravena",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
     });
   }
-
-  const statement = db.prepare(`
-    UPDATE items
-    SET completed = ?
-    WHERE id = ?
-  `);
-
-  statement.run(completed ? 1 : 0, id);
-
-  res.json({
-    message: "Completed upraven",
-  });
 });
 
-// app.put("/posts/:list/:id", (req, res) => {
-//   const { list, id } = req.params;
-//   const { title } = req.body;
+app.patch("/items/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { completed } = req.body;
 
-//   const statement = db.prepare(`
-//     UPDATE posts
-//     SET title = ?
-//     WHERE id = ? AND list = ?
-//   `);
-// app.delete("/posts/:list/:id", (req, res) => {
-//   const { list, id } = req.params;
+    if (typeof completed !== "boolean") {
+      return res.status(400).json({
+        error: "completed must be boolean",
+      });
+    }
 
-//   const statement = db.prepare(`
-//     DELETE FROM posts
-//     WHERE id = ? AND list = ?
-//   `);
+    await db.query(
+      `
+        UPDATE items
+        SET completed = $1
+        WHERE id = $2
+      `,
+      [completed ? 1 : 0, id]
+    );
 
-//   const result = statement.run(id, list);
-
-//   res.json({
-//     message: "Položka smazána",
-//   });
-// });
-
-// app.post(`/lists`, (req, res) => {
-//   const { name } = req.body;
-//   if (!name?.trim()) {
-//     return res.status(400).json({
-//       error: "Name is required",
-//     });
-//   }
-//   const statement = db.prepare(`
-
-//     INSERT INTO lists (name)
-//     VALUES (?)`);
-//   const result = statement.run(name);
-//   res.json({
-//     id: result.lastInsertRowid,
-//     name,
-//   });
-// });
-
-// app.get("/lists/:id", (req, res) => {
-//   const { id } = req.params;
-//   const statement = db.prepare(`
-// SELECT * FROM lists WHERE id = ?`);
-
-//   const lists = statement.get(id);
-//   res.json(lists);
-// });
-
-// const items = statement.all(listId);
-
-// console.log(items);
-
-// res.json(items);
+    res.json({
+      message: "Completed upraven",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
+    });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
 });
-
-//   const result = statement.run(title, id, list);
-
-//   res.json({
-//     message: "Příspěvek upraven",
-//   });
-// });
-
-// app.post("/posts/:list", (req, res) => {
-//   const { list } = req.params;
-//   const { title } = req.body;
-
-//   const statement = db.prepare(`
-//     INSERT INTO posts (list, title)
-//     VALUES (?, ?)
-//   `);
-
-//   const result = statement.run(list, title);
-
-//   res.status(201).json({
-//     message: "Příspěvek vytvořen",
-//     id: result.lastInsertRowid,
-//     list: list,
-//     title: title,
-//   });
-// });
-
-// app.patch("/posts/:id/move", (req, res) => {
-//   const { id } = req.params;
-//   const { newList } = req.body;
-
-//   const statement = db.prepare(`
-//     UPDATE posts
-//     SET list = ?
-//     WHERE id = ?
-//   `);
-
-//   statement.run(newList, id);
-
-//   res.json({
-//     message: "Položka přesunuta",
-//   });
-// });

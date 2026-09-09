@@ -1,7 +1,13 @@
-import Database from "better-sqlite3";
+import "dotenv/config";
+import pg from "pg";
 
-const dbPath = process.env.DATABASE_PATH || "database.db";
+const { Pool } = pg;
 
-const db = new Database(dbPath);
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
-export default db;
+export default pool;
