@@ -6,36 +6,25 @@ import Form from "./Form";
 import { Route, Routes } from "react-router-dom";
 
 import "./index.css";
+import Login from "./Login";
 
 function App() {
-  // const [lists, setLists] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
 
-  // const fetchData = async () => {
-  //   try {
-  //     const response = await axios.get(`${import.meta.env.VITE_API_URL}/lists`);
-  //     setLists(response.data);
-  //   } catch (error) {
-  //     console.log("Error", error);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchData();
-  // }, []);
-
+  if (!isLoggedIn) {
+    return <Login onLogin={() => setIsLoggedIn(true)} />;
+  }
   return (
     <div className="App">
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/list/:id" element={<Form />} />
+        <Route
+          path="/list/:id"
+          element={<Form onLogout={() => setIsLoggedIn(false)} />}
+        />
       </Routes>
     </div>
   );
 }
 
-{
-  /* <Route path="1" element={<Form nazev="nakup" showButton />} />
-<Route path="2" element={<Form nazev="lednice" />} />
-<Route path="3" element={<Form nazev="skrin" />} /> */
-}
 export default App;

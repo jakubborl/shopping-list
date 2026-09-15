@@ -1,51 +1,8 @@
 import express from "express";
 import cors from "cors";
 import db from "./database.js";
-
-// db.exec(`
-//   CREATE TABLE IF NOT EXISTS items (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     list_id INTEGER NOT NULL,
-//     title TEXT NOT NULL,
-//     completed INTEGER NOT NULL DEFAULT 0
-
-//   )
-// `);
-
-// const columns = db.prepare(`PRAGMA table_info(items)`).all();
-
-// const hasCompleted = columns.some((column) => column.name === "completed");
-
-// if (!hasCompleted) {
-//   db.exec(`
-//     ALTER TABLE items
-//     ADD COLUMN completed INTEGER NOT NULL DEFAULT 0
-//   `);
-// }
-
-// db.exec(`
-//   CREATE TABLE IF NOT EXISTS posts (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     list TEXT NOT NULL,
-//     title TEXT NOT NULL
-//   )
-// `);
-
-// db.exec(`
-//   CREATE TABLE IF NOT EXISTS lists (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     name TEXT NOT NULL UNIQUE
-//   )
-// `);
-// // db.exec("DELETE FROM lists");
-// // db.exec("DELETE FROM sqlite_sequence WHERE name = 'lists';");
-
-// db.exec(`
-//   INSERT OR IGNORE INTO lists (name) VALUES ('Nákup');
-//   INSERT OR IGNORE INTO lists (name) VALUES ('Lednice');
-//   INSERT OR IGNORE INTO lists (name) VALUES ('Skříň');
-
-//   `);
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const app = express();
 
@@ -66,6 +23,36 @@ async function initDatabase() {
       completed INTEGER NOT NULL DEFAULT 0
     )
   `);
+
+  await db.query(`
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL
+  );`);
+
+  const columns = await db.query(`
+  SELECT column_name
+  FROM information_schema.columns
+  WHERE table_name = 'lists'
+`);
+
+  const itemColumns = await db.query(`
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_name = 'items'
+`);
+
+  const hasUserId = itemColumns.rows.some(
+    (column) => column.column_name === "user_id"
+  );
+
+  if (!hasUserId) {
+    await db.query(`
+    ALTER TABLE items
+    ADD COLUMN user_id INTEGER
+  `);
+  }
 }
 
 initDatabase();
@@ -80,32 +67,65 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.get("/lists", async (req, res) => {
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({
+      error: "Access token required",
+    });
+  }
+
   try {
-    const result = await db.query(`
-      SELECT * FROM lists
-    `);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.userId = decoded.userId;
+
+    next();
+  } catch (error) {
+    return res.status(403).json({
+      error: "Invalid or expired token",
+    });
+  }
+};
+
+app.get("/lists", authenticateToken, async (req, res) => {
+  try {
+    const result = await db.query(
+      `
+        SELECT *
+        FROM lists
+        WHERE user_id = $1
+      `,
+      [req.userId]
+    );
+
+    console.log("USER ID:", req.userId);
+    console.log("LISTS:", result.rows);
 
     res.json(result.rows);
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       error: "Chyba databáze",
     });
   }
 });
 
-app.get("/lists/:listId", async (req, res) => {
+app.get("/lists/:listId", authenticateToken, async (req, res) => {
   try {
     const { listId } = req.params;
 
     const result = await db.query(
       `
-        SELECT *
-        FROM lists
-        WHERE id = $1
+      SELECT *
+      FROM lists
+      WHERE id = $1 AND user_id = $2
       `,
-      [listId]
+      [listId, req.userId]
     );
 
     res.json(result.rows[0]);
@@ -117,7 +137,7 @@ app.get("/lists/:listId", async (req, res) => {
   }
 });
 
-app.get("/lists/:listId/items", async (req, res) => {
+app.get("/lists/:listId/items", authenticateToken, async (req, res) => {
   try {
     const { listId } = req.params;
 
@@ -128,9 +148,10 @@ app.get("/lists/:listId/items", async (req, res) => {
         SELECT *
         FROM items
         WHERE list_id = $1
+        AND user_id = $2
         ORDER BY id DESC
       `,
-      [listId]
+      [listId, req.userId]
     );
 
     res.json(result.rows);
@@ -142,7 +163,7 @@ app.get("/lists/:listId/items", async (req, res) => {
   }
 });
 
-app.post("/lists", async (req, res) => {
+app.post("/lists", authenticateToken, async (req, res) => {
   try {
     const { name } = req.body;
 
@@ -154,65 +175,63 @@ app.post("/lists", async (req, res) => {
 
     const result = await db.query(
       `
-        INSERT INTO lists (name)
-        VALUES ($1)
-        RETURNING id
+        INSERT INTO lists (name, user_id)
+        VALUES ($1, $2)
+        RETURNING id, name, favorite, user_id
       `,
-      [name]
+      [name.trim(), req.userId]
     );
 
-    res.json({
-      id: result.rows[0].id,
-      name: name,
-    });
+    res.json(result.rows[0]);
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       error: "Chyba databáze",
     });
   }
 });
 
-app.delete("/lists/:id", async (req, res) => {
+app.delete("/lists/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({
-        error: "List-id is required",
-      });
-    }
-
-    console.log("Mažu seznam:", id);
 
     await db.query(
       `
         DELETE FROM items
-        WHERE list_id = $1
+        WHERE list_id = $1 AND user_id = $2
       `,
-      [id]
+      [id, req.userId]
     );
 
-    await db.query(
+    const result = await db.query(
       `
         DELETE FROM lists
-        WHERE id = $1
+        WHERE id = $1 AND user_id = $2
+        RETURNING *
       `,
-      [id]
+      [id, req.userId]
     );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: "Seznam nenalezen",
+      });
+    }
 
     res.json({
       message: "Seznam smazán",
     });
   } catch (error) {
     console.error(error);
+
     res.status(500).json({
       error: "Chyba databáze",
     });
   }
 });
 
-app.put("/lists/:id", async (req, res) => {
+app.put("/lists/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { name } = req.body;
@@ -223,14 +242,20 @@ app.put("/lists/:id", async (req, res) => {
       });
     }
 
-    await db.query(
+    const result = await db.query(
       `
         UPDATE lists
         SET name = $1
-        WHERE id = $2
+        WHERE id = $2 AND user_id = $3
       `,
-      [name, id]
+      [name, id, req.userId]
     );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: "Seznam nenalezen",
+      });
+    }
 
     res.json({
       message: "Název seznamu upraven",
@@ -243,7 +268,7 @@ app.put("/lists/:id", async (req, res) => {
   }
 });
 
-app.post("/lists/:listId/items", async (req, res) => {
+app.post("/lists/:listId/items", authenticateToken, async (req, res) => {
   try {
     const { listId } = req.params;
     const { title } = req.body;
@@ -254,13 +279,27 @@ app.post("/lists/:listId/items", async (req, res) => {
       });
     }
 
+    const list = await db.query(
+      `
+        SELECT id
+        FROM lists
+        WHERE id = $1 AND user_id = $2
+      `,
+      [listId, req.userId]
+    );
+    if (list.rows.length === 0) {
+      return res.status(404).json({
+        error: "Seznam nenalezen",
+      });
+    }
+
     const result = await db.query(
       `
-        INSERT INTO items (list_id, title)
-        VALUES ($1, $2)
-        RETURNING id, list_id, title, completed
+        INSERT INTO items (list_id, title, user_id)
+        VALUES ($1, $2, $3)
+        RETURNING *
       `,
-      [listId, title]
+      [listId, title.trim(), req.userId]
     );
 
     res.json(result.rows[0]);
@@ -272,17 +311,22 @@ app.post("/lists/:listId/items", async (req, res) => {
   }
 });
 
-app.delete("/items/:id", async (req, res) => {
+app.delete("/items/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await db.query(
       `
         DELETE FROM items
-        WHERE id = $1
+        WHERE id = $1 AND user_id = $2
       `,
-      [id]
+      [id, req.userId]
     );
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: "Položka nenalezena",
+      });
+    }
 
     res.json({
       message: "Položka smazána",
@@ -295,7 +339,7 @@ app.delete("/items/:id", async (req, res) => {
   }
 });
 
-app.put("/items/:id", async (req, res) => {
+app.put("/items/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { title } = req.body;
@@ -306,14 +350,20 @@ app.put("/items/:id", async (req, res) => {
       });
     }
 
-    await db.query(
+    const result = await db.query(
       `
         UPDATE items
         SET title = $1
-        WHERE id = $2
+        WHERE id = $2 AND user_id = $3
       `,
-      [title, id]
+      [title, id, req.userId]
     );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: "Položka nenalezena",
+      });
+    }
 
     res.json({
       message: "Položka upravena",
@@ -326,7 +376,7 @@ app.put("/items/:id", async (req, res) => {
   }
 });
 
-app.patch("/items/:id", async (req, res) => {
+app.patch("/items/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { completed } = req.body;
@@ -337,20 +387,118 @@ app.patch("/items/:id", async (req, res) => {
       });
     }
 
-    await db.query(
+    const result = await db.query(
       `
         UPDATE items
         SET completed = $1
-        WHERE id = $2
+        WHERE id = $2 AND user_id = $3
       `,
-      [completed ? 1 : 0, id]
+      [completed ? 1 : 0, id, req.userId]
     );
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: "Položka nenalezena",
+      });
+    }
 
     res.json({
       message: "Completed upraven",
     });
   } catch (error) {
     console.error(error);
+    res.status(500).json({
+      error: "Chyba databáze",
+    });
+  }
+});
+
+app.post("/register", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email?.trim() || !password) {
+      return res.status(400).json({
+        error: "Email and password are required",
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const result = await db.query(
+      `
+        INSERT INTO users (email, password_hash)
+        VALUES ($1, $2)
+        RETURNING id, email
+      `,
+      [email.trim(), passwordHash]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "23505") {
+      return res.status(409).json({
+        error: "Email already exists",
+      });
+    }
+
+    res.status(500).json({
+      error: "Chyba databáze",
+    });
+  }
+});
+
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email?.trim() || !password) {
+      return res.status(400).json({
+        error: "Email and password are required",
+      });
+    }
+
+    const result = await db.query(
+      `
+        SELECT *
+        FROM users
+        WHERE email = $1
+      `,
+      [email.trim()]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(401).json({
+        error: "Invalid email or password",
+      });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!passwordMatch) {
+      return res.status(401).json({
+        error: "Invalid email or password",
+      });
+    }
+
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.json({
+      message: "Přihlášení úspěšné",
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+
     res.status(500).json({
       error: "Chyba databáze",
     });

@@ -6,6 +6,7 @@ import ListDialog from "./ListDialog";
 import DeleteListDialog from "./DeleteListDialog";
 import { MoreVertical, Pencil, Trash, Trash2 } from "lucide-react";
 import ActionMenu from "./ActionMenu";
+import api from "./api";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -22,30 +23,26 @@ export default function Home() {
 
   const fetchLists = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/lists`);
+      const response = await api.get(`${import.meta.env.VITE_API_URL}/lists`);
+
+      console.log("GET LISTS:", response.data);
+
       setLists(response.data);
     } catch (error) {
       console.log(error);
     }
   };
-
   useEffect(() => {
     fetchLists();
   }, []);
-
   const addList = async () => {
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/lists`,
-        {
-          name,
-        }
-      );
+      const response = await api.post(`${import.meta.env.VITE_API_URL}/lists`, {
+        name,
+      });
       await fetchLists();
       setName("");
       setShowForm(false);
-
-      console.log(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -53,7 +50,7 @@ export default function Home() {
 
   const deleteList = async (id) => {
     try {
-      const response = await axios.delete(
+      const response = await api.delete(
         `${import.meta.env.VITE_API_URL}/lists/${id}`
       );
       await fetchLists();
@@ -66,7 +63,7 @@ export default function Home() {
 
   const editList = async (id) => {
     try {
-      await axios.put(`${import.meta.env.VITE_API_URL}/lists/${id}`, {
+      await api.put(`${import.meta.env.VITE_API_URL}/lists/${id}`, {
         name: editName,
       });
 

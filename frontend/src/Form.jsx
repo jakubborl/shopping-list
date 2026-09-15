@@ -3,8 +3,9 @@ import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import ActionMenu from "./ActionMenu";
+import api from "./api";
 
-export default function Form({ listId, showButton = false }) {
+export default function Form({ onLogout }) {
   const [item, setItem] = useState("");
   const [items, setItems] = useState([]);
   const [array, setArray] = useState([]);
@@ -21,8 +22,13 @@ export default function Form({ listId, showButton = false }) {
 
   const { id } = useParams();
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    onLogout();
+  };
+
   const fetchList = async () => {
-    const response = await axios.get(
+    const response = await api.get(
       `${import.meta.env.VITE_API_URL}/lists/${id}`
     );
 
@@ -33,7 +39,7 @@ export default function Form({ listId, showButton = false }) {
   }, [id]);
 
   const fetchData = async () => {
-    const response = await axios.get(
+    const response = await api.get(
       `${import.meta.env.VITE_API_URL}/lists/${id}/items`
     );
 
@@ -46,7 +52,7 @@ export default function Form({ listId, showButton = false }) {
 
   const addPost = async () => {
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_API_URL}/lists/${id}/items`,
         {
           title,
@@ -61,7 +67,7 @@ export default function Form({ listId, showButton = false }) {
 
   const deletePost = async (id) => {
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/items/${id}`);
+      await api.delete(`${import.meta.env.VITE_API_URL}/items/${id}`);
 
       await fetchData();
     } catch (error) {
@@ -76,7 +82,7 @@ export default function Form({ listId, showButton = false }) {
     setItem("");
   }
   const saveEdit = async (id) => {
-    await axios.put(`${import.meta.env.VITE_API_URL}/items/${id}`, {
+    await api.put(`${import.meta.env.VITE_API_URL}/items/${id}`, {
       title: editTitle,
     });
 
@@ -84,14 +90,6 @@ export default function Form({ listId, showButton = false }) {
 
     setEditingId(null);
     setEditTitle("");
-  };
-
-  const movePost = async (id, newList) => {
-    await axios.patch(`${import.meta.env.VITE_API_URL}/posts/${id}/move`, {
-      newList: newList,
-    });
-
-    await fetchData();
   };
 
   function handleMenuClick(e, item) {
@@ -121,7 +119,7 @@ export default function Form({ listId, showButton = false }) {
       try {
         const newCompleted = currentCompleted === 1 ? false : true;
 
-        await axios.patch(`${import.meta.env.VITE_API_URL}/items/${id}`, {
+        await api.patch(`${import.meta.env.VITE_API_URL}/items/${id}`, {
           completed: newCompleted,
         });
 
@@ -144,6 +142,7 @@ export default function Form({ listId, showButton = false }) {
       <Link to="/" className="button-66">
         Domů
       </Link>
+      <button onClick={handleLogout}>Odhlásit se</button>
       <div className="lednice">
         <h2>Seznam {lists?.name}</h2>
         <form onSubmit={addItem}>
