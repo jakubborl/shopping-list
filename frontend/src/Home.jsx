@@ -8,7 +8,7 @@ import { MoreVertical, Pencil, Trash, Trash2 } from "lucide-react";
 import ActionMenu from "./ActionMenu";
 import api from "./api";
 
-export default function Home() {
+export default function Home({ onLogout }) {
   const navigate = useNavigate();
   const [lists, setLists] = useState([]);
   const [name, setName] = useState("");
@@ -101,74 +101,86 @@ export default function Home() {
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
   }, []);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    onLogout();
+  };
 
   return (
-    <div className="page">
-      <div className="homepage">
-        {lists.map((item) => (
-          <div key={item.id}>
-            <div
-              className={`list-card ${activeMenu === item.id ? "active" : ""}`}
-              onClick={() => navigate(`/list/${item.id}`)}
-            >
-              <div className="list-info">{item.name}</div>
-              <button
-                className="btn-vertical"
-                onClick={(e) => handleMenuClick(e, item)}
-              >
-                <MoreVertical />
-              </button>
-              {activeMenu === item.id && (
-                <ActionMenu
-                  onEdit={(e) => {
-                    e.stopPropagation();
-                    setEditCurList(true);
-                    setSelectedList(item);
-                  }}
-                  onDelete={(e) => {
-                    e.stopPropagation();
-                    setShowCnclForm(true);
-                    setSelectedList(item);
-                  }}
-                  divName={"menu"}
-                  onShowMenu={() => setActiveMenu(null)}
-                />
-              )}
-            </div>
-          </div>
-        ))}
-        {selectedList && showCnclForm && (
-          <DeleteListDialog
-            list={selectedList}
-            onDelete={deleteList}
-            onClose={() => setSelectedList(null)}
-          />
-        )}
-        <button className="add-list-card" onClick={() => setShowForm(true)}>
-          ➕ Nový seznam
-        </button>
+    <>
+      <button onClick={handleLogout} className="logout-button">
+        Odhlásit se
+      </button>
 
-        {showForm && (
-          <ListDialog
-            name={name}
-            setName={setName}
-            onSubmit={handleSubmit}
-            setShowForm={setShowForm}
-            title={"Nový seznam"}
-            button={"Vytvořit"}
-          />
-        )}
-        {editCurList && (
-          <ListDialog
-            name={editName}
-            onSubmit={() => editList(selectedList.id)}
-            setName={setEditName}
-            setShowForm={setEditCurList}
-            title="Změna názvu"
-            button="Změnit"
-          />
-        )}
+      <div className="page">
+        <div className="homepage">
+          {lists.map((item) => (
+            <div key={item.id}>
+              <div
+                className={`list-card ${
+                  activeMenu === item.id ? "active" : ""
+                }`}
+                onClick={() => navigate(`/list/${item.id}`)}
+              >
+                <div className="list-info">{item.name}</div>
+                <button
+                  className="btn-vertical"
+                  onClick={(e) => handleMenuClick(e, item)}
+                >
+                  <MoreVertical />
+                </button>
+                {activeMenu === item.id && (
+                  <ActionMenu
+                    onEdit={(e) => {
+                      e.stopPropagation();
+                      setEditCurList(true);
+                      setSelectedList(item);
+                    }}
+                    onDelete={(e) => {
+                      e.stopPropagation();
+                      setShowCnclForm(true);
+                      setSelectedList(item);
+                    }}
+                    divName={"menu"}
+                    onShowMenu={() => setActiveMenu(null)}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+          {selectedList && showCnclForm && (
+            <DeleteListDialog
+              list={selectedList}
+              onDelete={deleteList}
+              onClose={() => setSelectedList(null)}
+            />
+          )}
+          <button className="add-list-card" onClick={() => setShowForm(true)}>
+            + Nový seznam
+          </button>
+
+          {showForm && (
+            <ListDialog
+              name={name}
+              setName={setName}
+              onSubmit={handleSubmit}
+              setShowForm={setShowForm}
+              title={"Nový seznam"}
+              button={"Vytvořit"}
+            />
+          )}
+          {editCurList && (
+            <ListDialog
+              name={editName}
+              onSubmit={() => editList(selectedList.id)}
+              setName={setEditName}
+              setShowForm={setEditCurList}
+              title="Změna názvu"
+              button="Změnit"
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

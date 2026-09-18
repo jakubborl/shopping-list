@@ -1,21 +1,22 @@
 import { useState } from "react";
 import axios from "axios";
+import api from "./api";
+import { Link } from "react-router-dom";
+import logo from "./assets/logo.png";
 
 function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/login`,
-        {
-          email,
-          password,
-        }
-      );
+      const response = await api.post(`${import.meta.env.VITE_API_URL}/login`, {
+        email,
+        password,
+      });
 
       console.log("LOGIN:", response.data);
 
@@ -27,23 +28,40 @@ function Login({ onLogin }) {
   };
 
   return (
-    <form onSubmit={handleLogin}>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-      />
+    <div className="login-page">
+      <div className="login-container">
+        <img src={logo} alt="Logo" className="login-logo" />
+        <h1>Přihlášení</h1>
 
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Heslo"
-      />
+        <p className="login-subtitle">Přihlas se ke svým seznamům</p>
 
-      <button type="submit">Přihlásit</button>
-    </form>
+        <form className="login-form" onSubmit={handleLogin}>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
+          />
+
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Heslo"
+            required
+          />
+
+          {error && <p className="login-error">{error}</p>}
+
+          <button type="submit">Přihlásit</button>
+        </form>
+
+        <p className="login-register">
+          Nemáš účet? <Link to="/register">Registrovat se</Link>
+        </p>
+      </div>
+    </div>
   );
 }
 

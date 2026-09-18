@@ -1,26 +1,59 @@
-import axios from "axios";
-import { useState, useEffect } from "react";
-import React from "react";
+import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+
 import Home from "./Home";
 import Form from "./Form";
-import { Route, Routes } from "react-router-dom";
+import Login from "./Login";
+import Register from "./Register";
 
 import "./index.css";
-import Login from "./Login";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
 
-  if (!isLoggedIn) {
-    return <Login onLogin={() => setIsLoggedIn(true)} />;
-  }
   return (
     <div className="App">
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* REGISTRACE */}
+        <Route
+          path="/register"
+          element={isLoggedIn ? <Navigate to="/" /> : <Register />}
+        />
+
+        {/* LOGIN */}
+        <Route
+          path="/login"
+          element={
+            isLoggedIn ? (
+              <Navigate to="/" />
+            ) : (
+              <Login onLogin={() => setIsLoggedIn(true)} />
+            )
+          }
+        />
+
+        {/* HOMEPAGE */}
+        <Route
+          path="/"
+          element={
+            isLoggedIn ? (
+              <Home onLogout={() => setIsLoggedIn(false)} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        {/* SEZNAM */}
         <Route
           path="/list/:id"
-          element={<Form onLogout={() => setIsLoggedIn(false)} />}
+          element={
+            isLoggedIn ? (
+              <Form onLogout={() => setIsLoggedIn(false)} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
         />
       </Routes>
     </div>

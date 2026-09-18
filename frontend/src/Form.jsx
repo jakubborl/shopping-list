@@ -139,24 +139,23 @@ export default function Form({ onLogout }) {
 
   return (
     <>
-      <Link to="/" className="button-66">
+      <Link to="/" className="home-button">
         Domů
       </Link>
-      <button onClick={handleLogout}>Odhlásit se</button>
+      <button onClick={handleLogout} className="logout-button">
+        Odhlásit se
+      </button>
       <div className="lednice">
         <h2>Seznam {lists?.name}</h2>
         <form onSubmit={addItem}>
-          <div className="row">
+          <div className="add-task">
             <input
-              className="polozka"
               type="text"
               placeholder="Přidat položku"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            <button className="button-66" onClick={addPost}>
-              Přidat
-            </button>
+            <button onClick={addPost}>Přidat</button>
           </div>
         </form>
         <h2>Nesplněné</h2>
