@@ -61,8 +61,8 @@ app.use(express.json());
 const port = process.env.PORT || 8080;
 
 const corsOptions = {
+  // origin: ["http://localhost:5173"],
   origin: ["https://shopping-list-gamma-one.vercel.app"],
-  // origin: ["https://shopping-list-gamma-one.vercel.app"],
 };
 
 app.use(cors(corsOptions));
@@ -501,6 +501,46 @@ app.post("/login", async (req, res) => {
 
     res.status(500).json({
       error: "Chyba databáze",
+    });
+  }
+});
+
+app.post("/register", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email?.trim() || !password) {
+      return res.status(400).json({
+        error: "Email a heslo jsou povinné",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const result = await db.query(
+      `
+        INSERT INTO users (email, password_hash)
+        VALUES ($1, $2)
+        RETURNING id, email
+      `,
+      [email.trim(), hashedPassword]
+    );
+
+    res.status(201).json({
+      message: "Registrace úspěšná",
+      user: result.rows[0],
+    });
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "23505") {
+      return res.status(409).json({
+        error: "Tento email už je registrovaný",
+      });
+    }
+
+    res.status(500).json({
+      error: "Chyba při registraci",
     });
   }
 });
