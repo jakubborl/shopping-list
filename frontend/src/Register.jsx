@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "./api";
 import logo from "./assets/logo.png";
 
-function Register() {
+function Register({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -28,7 +28,8 @@ function Register() {
 
       console.log("REGISTRACE ÚSPĚŠNÁ:", response.data);
 
-      navigate("/login");
+      localStorage.setItem("token", response.data.token);
+      onLogin();
     } catch (error) {
       console.error("REGISTER ERROR:", error);
 
@@ -39,8 +40,9 @@ function Register() {
   return (
     <div className="login-page">
       <div className="login-container">
+        <h1>To-Do Lists</h1>
         <img src={logo} alt="Logo" className="login-logo" />
-        <h1>Registrace</h1>
+        <h2>Registrace</h2>
         <p className="login-subtitle">Zaregistruj se do aplikace</p>
         <form className="login-form" onSubmit={handleRegister}>
           <input

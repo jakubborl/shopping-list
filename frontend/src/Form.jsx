@@ -4,8 +4,9 @@ import { Link, useParams } from "react-router-dom";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import ActionMenu from "./ActionMenu";
 import api from "./api";
+import ListDialog from "./ListDialog";
 
-export default function Form({ onLogout }) {
+export default function Form() {
   const [item, setItem] = useState("");
   const [items, setItems] = useState([]);
   const [array, setArray] = useState([]);
@@ -17,15 +18,11 @@ export default function Form({ onLogout }) {
   const activeTasks = array.filter((task) => task.completed === 0);
   const completedTasks = array.filter((task) => task.completed === 1);
   const [animatingId, setAnimatingId] = useState(null);
+  const [editCurItem, setEditCurItem] = useState(false);
 
   const modalRef = useRef();
 
   const { id } = useParams();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    onLogout();
-  };
 
   const fetchList = async () => {
     const response = await api.get(
@@ -139,12 +136,6 @@ export default function Form({ onLogout }) {
 
   return (
     <>
-      <Link to="/" className="home-button">
-        Domů
-      </Link>
-      <button onClick={handleLogout} className="logout-button">
-        Odhlásit se
-      </button>
       <div className="lednice">
         <h2>Seznam {lists?.name}</h2>
         <form onSubmit={addItem}>
@@ -161,25 +152,8 @@ export default function Form({ onLogout }) {
         <h2>Nesplněné</h2>
         <ul className="active-tasks-list">
           {activeTasks.map((task) => (
-            <li className="task-card" key={task.id}>
-              {editingId === task.id ? (
-                <>
-                  <input
-                    className="change"
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    style={{ width: `${Math.max(editTitle.length, 1)}ch` }}
-                  />
-
-                  <button
-                    className="change-btn"
-                    onClick={() => saveEdit(task.id)}
-                  >
-                    Uložit
-                  </button>
-                </>
-              ) : (
+            <li className="task-wrapper" key={task.id}>
+              <div className="task-card">
                 <>
                   <div className="checkbox-wrapper-15">
                     <input
@@ -205,22 +179,20 @@ export default function Form({ onLogout }) {
                   >
                     <MoreVertical />
                   </button>
-                  {activeMenu === task.id && (
-                    <div ref={modalRef}>
-                      <ActionMenu
-                        onEdit={() => {
-                          setEditingId(task.id);
-                          setEditTitle(task.title);
-                        }}
-                        onDelete={() => {
-                          deletePost(task.id);
-                        }}
-                        divName={"form-menu"}
-                        onShowMenu={() => setActiveMenu(null)}
-                      />
-                    </div>
-                  )}
                 </>
+              </div>
+              {activeMenu === task.id && (
+                <ActionMenu
+                  onEdit={() => {
+                    setEditingId(task.id);
+                    setEditTitle(task.title);
+                  }}
+                  onDelete={() => {
+                    deletePost(task.id);
+                  }}
+                  divName="menu"
+                  onShowMenu={() => setActiveMenu(null)}
+                />
               )}
             </li>
           ))}
@@ -228,53 +200,65 @@ export default function Form({ onLogout }) {
         <h2 className="completed-title">Splněné</h2>
         <ul className="active-tasks-list">
           {completedTasks.map((task) => (
-            <li className="task-card" key={task.id}>
-              <div className="checkbox-wrapper-15">
-                <input
-                  className="inp-cbx"
-                  id={`cbx-${task.id}`}
-                  type="checkbox"
-                  style={{ display: "none" }}
-                  checked={task.completed === 1 || animatingId === task.id}
-                  onChange={() => toggleCompleted(task.id, task.completed)}
-                />
-                <label className="cbx" htmlFor={`cbx-${task.id}`}>
-                  <span>
-                    <svg width="12px" height="9px" viewBox="0 0 12 9">
-                      <polyline points="1 5 4 8 11 1"></polyline>
-                    </svg>
-                  </span>
-                  <span>
-                    {task.title} {"| "}
-                    {task.completed}
-                  </span>
-                </label>
-              </div>
-              <button
-                className="btn-vertical"
-                onClick={(e) => handleMenuClick(e, task)}
-              >
-                <MoreVertical />
-              </button>
-              {activeMenu === task.id && (
-                <div ref={modalRef}>
-                  <ActionMenu
-                    onEdit={() => {
-                      setEditingId(task.id);
-                      setEditTitle(task.title);
-                    }}
-                    onDelete={() => {
-                      deletePost(task.id);
-                    }}
-                    divName={"form-menu"}
-                    onShowMenu={() => setActiveMenu(null)}
+            <li className="task-wrapper" key={task.id}>
+              <div className="task-card">
+                <div className="checkbox-wrapper-15">
+                  <input
+                    className="inp-cbx"
+                    id={`cbx-${task.id}`}
+                    type="checkbox"
+                    style={{ display: "none" }}
+                    checked={task.completed === 1 || animatingId === task.id}
+                    onChange={() => toggleCompleted(task.id, task.completed)}
                   />
+                  <label className="cbx" htmlFor={`cbx-${task.id}`}>
+                    <span>
+                      <svg width="12px" height="9px" viewBox="0 0 12 9">
+                        <polyline points="1 5 4 8 11 1"></polyline>
+                      </svg>
+                    </span>
+                    <span>
+                      {task.title} {"| "}
+                      {task.completed}
+                    </span>
+                  </label>
                 </div>
+                <button
+                  className="btn-vertical"
+                  onClick={(e) => handleMenuClick(e, task)}
+                >
+                  <MoreVertical />
+                </button>
+              </div>
+              {activeMenu === task.id && (
+                <ActionMenu
+                  onEdit={() => {
+                    setEditingId(task.id);
+                    setEditTitle(task.title);
+                  }}
+                  onDelete={() => {
+                    deletePost(task.id);
+                  }}
+                  divName={"menu"}
+                  onShowMenu={() => setActiveMenu(null)}
+                />
               )}
             </li>
           ))}
         </ul>
       </div>
+      <>
+        {editingId && (
+          <ListDialog
+            name={editTitle}
+            setName={setEditTitle}
+            onSubmit={() => (saveEdit(editingId), setActiveMenu(false))}
+            setShowForm={() => setEditingId(null)}
+            title="Změna názvu"
+            button="Změnit"
+          />
+        )}
+      </>
     </>
   );
 }

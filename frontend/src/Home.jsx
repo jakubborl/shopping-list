@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import ListDialog from "./ListDialog";
 import DeleteListDialog from "./DeleteListDialog";
-import { MoreVertical, Pencil, Trash, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Trash, Trash2, Star } from "lucide-react";
 import ActionMenu from "./ActionMenu";
 import api from "./api";
 
-export default function Home({ onLogout }) {
+export default function Home() {
   const navigate = useNavigate();
   const [lists, setLists] = useState([]);
   const [name, setName] = useState("");
@@ -101,51 +101,55 @@ export default function Home({ onLogout }) {
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
   }, []);
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    onLogout();
-  };
 
   return (
     <>
-      <button onClick={handleLogout} className="logout-button">
-        Odhlásit se
-      </button>
-
       <div className="page">
         <div className="homepage">
           {lists.map((item) => (
-            <div key={item.id}>
-              <div
-                className={`list-card ${
-                  activeMenu === item.id ? "active" : ""
-                }`}
-                onClick={() => navigate(`/list/${item.id}`)}
-              >
-                <div className="list-info">{item.name}</div>
+            <div
+              key={item.id}
+              className={`list-card ${activeMenu === item.id ? "active" : ""}`}
+              onClick={() => navigate(`/list/${item.id}`)}
+            >
+              <div className="list-info">{item.name}</div>
+
+              <div className="list-actions">
                 <button
-                  className="btn-vertical"
+                  className="favorite-button"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Star
+                    size={30}
+                    fill={item.favorite ? "currentColor" : "none"}
+                  />
+                </button>
+
+                <button
+                  className="favorite-button"
                   onClick={(e) => handleMenuClick(e, item)}
                 >
                   <MoreVertical />
                 </button>
-                {activeMenu === item.id && (
-                  <ActionMenu
-                    onEdit={(e) => {
-                      e.stopPropagation();
-                      setEditCurList(true);
-                      setSelectedList(item);
-                    }}
-                    onDelete={(e) => {
-                      e.stopPropagation();
-                      setShowCnclForm(true);
-                      setSelectedList(item);
-                    }}
-                    divName={"menu"}
-                    onShowMenu={() => setActiveMenu(null)}
-                  />
-                )}
               </div>
+
+              {activeMenu === item.id && (
+                <ActionMenu
+                  onEdit={(e) => {
+                    e.stopPropagation();
+                    setEditCurList(true);
+                    setSelectedList(item);
+                    setEditName(item.name);
+                  }}
+                  onDelete={(e) => {
+                    e.stopPropagation();
+                    setShowCnclForm(true);
+                    setSelectedList(item);
+                  }}
+                  divName="menu"
+                  onShowMenu={() => setActiveMenu(null)}
+                />
+              )}
             </div>
           ))}
           {selectedList && showCnclForm && (
@@ -169,11 +173,12 @@ export default function Home({ onLogout }) {
               button={"Vytvořit"}
             />
           )}
+
           {editCurList && (
             <ListDialog
               name={editName}
-              onSubmit={() => editList(selectedList.id)}
               setName={setEditName}
+              onSubmit={() => editList(selectedList.id)}
               setShowForm={setEditCurList}
               title="Změna názvu"
               button="Změnit"

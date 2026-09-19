@@ -9,62 +9,62 @@
 }
 
 
-.task-card{
- 
-  
-  background-color: #FCFCFD;
-  border-radius: 10px;
-  border-width: 0;
-  box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px,rgba(45, 35, 66, 0.3) 0 7px 13px -3px,#D6D6E7 0 -3px 0 inset;
- 
-  color: #36395A;
-  
-  display: flex;
-  
-  
-  justify-content: space-between;
-  min-height: 22px;
-  width: 100%;
-  z-index: 1;
-  display: flex;
-  list-style: none;
-  
-  padding-left: 16px;
-  padding-right: 16px;
-  position: relative;
-  font-size: 25px;
-  
-    
-  
 
-}
-.active-tasks-list{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  
-}
 
 .completed-title{
   margin-top: 30px;
 }
 
-.menu {
-  background: white;
+.active-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: visible;
+  padding: 0;
+}
 
-  border-radius: 12px;
-  
-  box-shadow:0 10px 30px rgba(0,0,0,.12);
-  
-  padding: 10px;
-  
-  width: 180px;
+.task-wrapper {
+  position: relative;
+  width: 100%;
+  list-style: none;
+}
+
+.task-card {
+  background-color: #fcfcfd;
+  border-radius: 10px;
+  box-shadow:
+    rgba(45, 35, 66, 0.4) 0 2px 4px,
+    rgba(45, 35, 66, 0.3) 0 7px 13px -3px,
+    #d6d6e7 0 -3px 0 inset;
+
+  color: #36395a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  min-height: 70px;
+
+  padding: 10px 16px;
+
+  position: relative;
+  z-index: 1;
+
+  font-size: 25px;
+}
+
+.menu {
   position: absolute;
-  
   top: calc(100% + 8px);
   right: 0;
+  z-index: 9999;
 
-  
+  width: 180px;
+  padding: 10px;
+
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
 .form-menu {
@@ -187,7 +187,11 @@
   text-align: center;
   
 }
-
+.list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 .list-card.active {
   z-index: 100;
@@ -331,7 +335,7 @@
   justify-content: center;
 
   padding: 12px 18px;
-  
+  height: 54px;
 
   border: none;
   border-radius: 12px;
@@ -351,7 +355,8 @@
 .logout-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 3px 7px rgba(0, 0, 0, 0.12);
-  
+  color: white;
+  background-color: var(--primary);
 }
 
 .logout-button:active {
@@ -418,7 +423,7 @@ h2{
   margin-bottom: 25px;
 }
 
-ul li{
+ul li {
   list-style: none;
   font-size: 17px;
   padding: 10px 8px 15px 20px;
@@ -427,7 +432,8 @@ ul li{
   display: flex;
   gap: 10px;
   height: 70px;
-}
+  
+} 
 
 ul li::before{
   content: " ";
@@ -835,4 +841,78 @@ ul li::before{
 
 .login-register a:hover {
   text-decoration: underline;
+}
+
+.navbar {
+  width: 100%;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+
+  height: 64px;
+  padding: 0 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  color: var(--text);
+  text-decoration: none;
+  
+  height: 64px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.navbar-logo img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-link {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.navbar-link:hover {
+  color: var(--primary);
+}
+
+.favorite-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  width: 50px;
+  background: none;
+  border: none;
+  border-radius: 5px;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.favorite-button:hover {
+  background-color:#d7d5d5;
 }

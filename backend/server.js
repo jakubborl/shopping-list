@@ -60,10 +60,7 @@ initDatabase();
 app.use(express.json());
 const port = process.env.PORT || 8080;
 
-const corsOptions = {
-  // origin: ["http://localhost:5173"],
-  origin: ["https://shopping-list-gamma-one.vercel.app"],
-};
+const corsOptions = { origin: process.env.FRONTEND_URL };
 
 app.use(cors(corsOptions));
 
@@ -98,6 +95,7 @@ app.get("/lists", authenticateToken, async (req, res) => {
         SELECT *
         FROM lists
         WHERE user_id = $1
+        ORDER BY id ASC
       `,
       [req.userId]
     );

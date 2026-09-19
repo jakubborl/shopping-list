@@ -30,8 +30,9 @@ function Login({ onLogin }) {
   return (
     <div className="login-page">
       <div className="login-container">
+        <h1>To-Do Lists</h1>
         <img src={logo} alt="Logo" className="login-logo" />
-        <h1>Přihlášení</h1>
+        <h2>Přihlášení</h2>
 
         <p className="login-subtitle">Přihlas se ke svým seznamům</p>
 
