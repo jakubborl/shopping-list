@@ -7,9 +7,9 @@ import DeleteListDialog from "./DeleteListDialog";
 import { MoreVertical, Pencil, Trash, Trash2, Star } from "lucide-react";
 import ActionMenu from "./ActionMenu";
 import api from "./api";
+import ListCard from "./ListCard";
 
 export default function Home() {
-  const navigate = useNavigate();
   const [lists, setLists] = useState([]);
   const [name, setName] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -18,7 +18,11 @@ export default function Home() {
   const [editName, setEditName] = useState("");
   const [editCurList, setEditCurList] = useState("");
   const [showCnclForm, setShowCnclForm] = useState(null);
+  const favoriteLists = lists.filter((list) => list.favorite === 1);
+  const normalLists = lists.filter((list) => list.favorite === 0);
 
+  console.log("bezne:", normalLists);
+  console.log("oblibene:", favoriteLists);
   const modalRef = useRef();
 
   const fetchLists = async () => {
@@ -102,63 +106,65 @@ export default function Home() {
     return () => document.removeEventListener("click", handler);
   }, []);
 
+  const toggleFavorite = async (id, currentFavorite) => {
+    try {
+      await api.patch(`${import.meta.env.VITE_API_URL}/lists/${id}/favorite`, {
+        favorite: currentFavorite === 1 ? false : true,
+      });
+
+      await fetchLists();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const handleDeleteClick = (list) => {
+    setSelectedList(list);
+    setShowCnclForm(true);
+  };
+  const handleCloseDelete = () => {
+    setSelectedList(null);
+    setShowCnclForm(false);
+  };
+
   return (
     <>
       <div className="page">
         <div className="homepage">
-          {lists.map((item) => (
-            <div
-              key={item.id}
-              className={`list-card ${activeMenu === item.id ? "active" : ""}`}
-              onClick={() => navigate(`/list/${item.id}`)}
-            >
-              <div className="list-info">{item.name}</div>
-
-              <div className="list-actions">
-                <button
-                  className="favorite-button"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Star
-                    size={30}
-                    fill={item.favorite ? "currentColor" : "none"}
-                  />
-                </button>
-
-                <button
-                  className="favorite-button"
-                  onClick={(e) => handleMenuClick(e, item)}
-                >
-                  <MoreVertical />
-                </button>
-              </div>
-
-              {activeMenu === item.id && (
-                <ActionMenu
-                  onEdit={(e) => {
-                    e.stopPropagation();
-                    setEditCurList(true);
-                    setSelectedList(item);
-                    setEditName(item.name);
-                  }}
-                  onDelete={(e) => {
-                    e.stopPropagation();
-                    setShowCnclForm(true);
-                    setSelectedList(item);
-                  }}
-                  divName="menu"
-                  onShowMenu={() => setActiveMenu(null)}
-                />
-              )}
-            </div>
-          ))}
-          {selectedList && showCnclForm && (
-            <DeleteListDialog
-              list={selectedList}
-              onDelete={deleteList}
-              onClose={() => setSelectedList(null)}
+          <h1>Oblíbené</h1>
+          {favoriteLists.map((list) => (
+            <ListCard
+              key={list.id}
+              list={list}
+              onClose={handleCloseDelete}
+              isMenuOpen={activeMenu === list.id}
+              setisMenuOpen={setActiveMenu}
+              onFavorite={toggleFavorite}
+              onMenuClick={handleMenuClick}
+              setEditCurList={setEditCurList}
+              onDelete={handleDeleteClick}
+              setEditName={setEditName}
+              selectedList={selectedList}
+              showCnclForm={showCnclForm}
+              deleteList={deleteList}
             />
-          )}
+          ))}
+          <h1>Ostatní</h1>
+          {normalLists.map((list) => (
+            <ListCard
+              key={list.id}
+              list={list}
+              onClose={handleCloseDelete}
+              isMenuOpen={activeMenu === list.id}
+              onFavorite={toggleFavorite}
+              onMenuClick={handleMenuClick}
+              setEditCurList={setEditCurList}
+              onDelete={handleDeleteClick}
+              setEditName={setEditName}
+              selectedList={selectedList}
+              showCnclForm={showCnclForm}
+              deleteList={deleteList}
+            />
+          ))}
           <button className="add-list-card" onClick={() => setShowForm(true)}>
             + Nový seznam
           </button>
