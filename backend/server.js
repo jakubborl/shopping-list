@@ -10,7 +10,7 @@ async function initDatabase() {
   await db.query(`
     CREATE TABLE IF NOT EXISTS lists (
       id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL ,
       favorite INTEGER NOT NULL DEFAULT 0
     )
   `);
@@ -31,10 +31,9 @@ async function initDatabase() {
     password_hash TEXT NOT NULL
   );`);
 
-  const columns = await db.query(`
-  SELECT column_name
-  FROM information_schema.columns
-  WHERE table_name = 'lists'
+  await db.query(`
+  ALTER TABLE lists
+  DROP CONSTRAINT lists_name_key;
 `);
 
   const itemColumns = await db.query(`
@@ -440,50 +439,13 @@ app.patch("/lists/:id/favorite", authenticateToken, async (req, res) => {
   }
 });
 
-app.post("/register", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email?.trim() || !password) {
-      return res.status(400).json({
-        error: "Email and password are required",
-      });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    const result = await db.query(
-      `
-        INSERT INTO users (email, password_hash)
-        VALUES ($1, $2)
-        RETURNING id, email
-      `,
-      [email.trim(), passwordHash]
-    );
-
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    console.error(error);
-
-    if (error.code === "23505") {
-      return res.status(409).json({
-        error: "Email already exists",
-      });
-    }
-
-    res.status(500).json({
-      error: "Chyba databáze",
-    });
-  }
-});
-
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email?.trim() || !password) {
       return res.status(400).json({
-        error: "Email and password are required",
+        error: "Email i heslo jsou povinné",
       });
     }
 
@@ -500,7 +462,7 @@ app.post("/login", async (req, res) => {
 
     if (!user) {
       return res.status(401).json({
-        error: "Invalid email or password",
+        error: "Nesprávný email nebo heslo",
       });
     }
 
@@ -508,7 +470,7 @@ app.post("/login", async (req, res) => {
 
     if (!passwordMatch) {
       return res.status(401).json({
-        error: "Invalid email or password",
+        error: "Nesprávný email nebo heslo",
       });
     }
 

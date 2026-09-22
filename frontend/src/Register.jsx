@@ -28,12 +28,12 @@ function Register({ onLogin }) {
 
       console.log("REGISTRACE ÚSPĚŠNÁ:", response.data);
 
-      localStorage.setItem("token", response.data.token);
-      onLogin();
+      navigate("/login");
     } catch (error) {
-      console.error("REGISTER ERROR:", error);
+      setError(error.response?.data?.error);
 
-      setError(error.response?.data?.error || "Registrace se nepodařila");
+      console.log("STATUS:", error.response?.status);
+      console.log("DATA:", error.response?.data);
     }
   };
 

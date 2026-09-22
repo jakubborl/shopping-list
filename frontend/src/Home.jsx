@@ -130,41 +130,52 @@ export default function Home() {
     <>
       <div className="page">
         <div className="homepage">
-          <h1>Oblíbené</h1>
-          {favoriteLists.map((list) => (
-            <ListCard
-              key={list.id}
-              list={list}
-              onClose={handleCloseDelete}
-              isMenuOpen={activeMenu === list.id}
-              setisMenuOpen={setActiveMenu}
-              onFavorite={toggleFavorite}
-              onMenuClick={handleMenuClick}
-              setEditCurList={setEditCurList}
-              onDelete={handleDeleteClick}
-              setEditName={setEditName}
-              selectedList={selectedList}
-              showCnclForm={showCnclForm}
-              deleteList={deleteList}
-            />
-          ))}
-          <h1>Ostatní</h1>
-          {normalLists.map((list) => (
-            <ListCard
-              key={list.id}
-              list={list}
-              onClose={handleCloseDelete}
-              isMenuOpen={activeMenu === list.id}
-              onFavorite={toggleFavorite}
-              onMenuClick={handleMenuClick}
-              setEditCurList={setEditCurList}
-              onDelete={handleDeleteClick}
-              setEditName={setEditName}
-              selectedList={selectedList}
-              showCnclForm={showCnclForm}
-              deleteList={deleteList}
-            />
-          ))}
+          {lists.length === 0 && (
+            <h1 className="no-list">Zatím nemáš žádné seznamy.</h1>
+          )}
+          {favoriteLists.length > 0 && (
+            <>
+              <h1>Oblíbené</h1>
+              {favoriteLists.map((list) => (
+                <ListCard
+                  key={list.id}
+                  list={list}
+                  onClose={handleCloseDelete}
+                  isMenuOpen={activeMenu === list.id}
+                  setisMenuOpen={setActiveMenu}
+                  onFavorite={toggleFavorite}
+                  onMenuClick={handleMenuClick}
+                  setEditCurList={setEditCurList}
+                  onDelete={handleDeleteClick}
+                  setEditName={setEditName}
+                  selectedList={selectedList}
+                  showCnclForm={showCnclForm}
+                  deleteList={deleteList}
+                />
+              ))}
+            </>
+          )}
+          {normalLists.length > 0 && (
+            <>
+              <h1>Ostatní</h1>
+              {normalLists.map((list) => (
+                <ListCard
+                  key={list.id}
+                  list={list}
+                  onClose={handleCloseDelete}
+                  isMenuOpen={activeMenu === list.id}
+                  onFavorite={toggleFavorite}
+                  onMenuClick={handleMenuClick}
+                  setEditCurList={setEditCurList}
+                  onDelete={handleDeleteClick}
+                  setEditName={setEditName}
+                  selectedList={selectedList}
+                  showCnclForm={showCnclForm}
+                  deleteList={deleteList}
+                />
+              ))}
+            </>
+          )}
           <button className="add-list-card" onClick={() => setShowForm(true)}>
             + Nový seznam
           </button>

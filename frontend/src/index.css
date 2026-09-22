@@ -7,6 +7,11 @@
   --radius: 12px;
   --primary: #4338ca;
 }
+
+.no-list{
+  color: var(--muted);
+  margin-bottom: 50px;
+}
 .user-button {
   
   display: inline-flex;
@@ -167,7 +172,7 @@
   flex-direction: column;
   width: 700px;
   margin: 40px auto;
- 
+  align-items: center;
 }
 
 
@@ -184,7 +189,13 @@
   min-height: 100vh;
   background: var(--background);
   padding: 10px;
-  
+  display: flex;
+  flex-direction: column;
+}
+
+
+main {
+  flex: 1;
 }
 .lednice{
   width: 100%;
@@ -468,7 +479,7 @@ gap: 10px;
   
 }
 
-
+.homepage
 h2{
   color: #444b57;
   display: flex;
@@ -908,7 +919,7 @@ ul li::before{
 }
 
 .navbar-container {
-  max-width: 1200px;
+  
   width: 100%;
   margin: 0 auto;
 

@@ -8,6 +8,7 @@ import Register from "./Register";
 
 import "./index.css";
 import Navbar from "./Navbar";
+import Footer from "./Footer";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
@@ -16,43 +17,46 @@ function App() {
     <>
       {isLoggedIn && <Navbar onLogout={() => setIsLoggedIn(false)} />}
       <div className="App">
-        <Routes>
-          {/* REGISTRACE */}
-          <Route
-            path="/register"
-            element={
-              isLoggedIn ? (
-                <Navigate to="/" />
-              ) : (
-                <Register onLogin={() => setIsLoggedIn(true)} />
-              )
-            }
-          />
+        <main>
+          <Routes>
+            {/* REGISTRACE */}
+            <Route
+              path="/register"
+              element={
+                isLoggedIn ? (
+                  <Navigate to="/" />
+                ) : (
+                  <Register onLogin={() => setIsLoggedIn(true)} />
+                )
+              }
+            />
 
-          {/* LOGIN */}
-          <Route
-            path="/login"
-            element={
-              isLoggedIn ? (
-                <Navigate to="/" />
-              ) : (
-                <Login onLogin={() => setIsLoggedIn(true)} />
-              )
-            }
-          />
+            {/* LOGIN */}
+            <Route
+              path="/login"
+              element={
+                isLoggedIn ? (
+                  <Navigate to="/" />
+                ) : (
+                  <Login onLogin={() => setIsLoggedIn(true)} />
+                )
+              }
+            />
 
-          {/* HOMEPAGE */}
-          <Route
-            path="/"
-            element={isLoggedIn ? <Home /> : <Navigate to="/login" />}
-          />
+            {/* HOMEPAGE */}
+            <Route
+              path="/"
+              element={isLoggedIn ? <Home /> : <Navigate to="/login" />}
+            />
 
-          {/* SEZNAM */}
-          <Route
-            path="/list/:id"
-            element={isLoggedIn ? <Form /> : <Navigate to="/login" />}
-          />
-        </Routes>
+            {/* SEZNAM */}
+            <Route
+              path="/list/:id"
+              element={isLoggedIn ? <Form /> : <Navigate to="/login" />}
+            />
+          </Routes>
+        </main>
+        <Footer />
       </div>
     </>
   );

@@ -24,6 +24,7 @@ function Login({ onLogin }) {
       onLogin();
     } catch (error) {
       console.error("LOGIN ERROR:", error);
+      setError(error.response?.data?.error);
     }
   };
 
