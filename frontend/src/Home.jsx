@@ -20,6 +20,7 @@ export default function Home() {
   const [showCnclForm, setShowCnclForm] = useState(null);
   const favoriteLists = lists.filter((list) => list.favorite === 1);
   const normalLists = lists.filter((list) => list.favorite === 0);
+  const [loading, setLoading] = useState(true);
 
   console.log("bezne:", normalLists);
   console.log("oblibene:", favoriteLists);
@@ -34,6 +35,8 @@ export default function Home() {
       setLists(response.data);
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
   useEffect(() => {
@@ -130,77 +133,83 @@ export default function Home() {
     <>
       <div className="page">
         <div className="homepage">
-          {lists.length === 0 && (
-            <h1 className="no-list">Zatím nemáš žádné seznamy.</h1>
-          )}
-          {favoriteLists.length > 0 && (
+          {loading ? (
+            <div className="spinner"></div>
+          ) : (
             <>
-              <h1>Oblíbené</h1>
-              {favoriteLists.map((list) => (
-                <ListCard
-                  key={list.id}
-                  list={list}
-                  onClose={handleCloseDelete}
-                  isMenuOpen={activeMenu === list.id}
-                  setisMenuOpen={setActiveMenu}
-                  onFavorite={toggleFavorite}
-                  onMenuClick={handleMenuClick}
-                  setEditCurList={setEditCurList}
-                  onDelete={handleDeleteClick}
-                  setEditName={setEditName}
-                  selectedList={selectedList}
-                  showCnclForm={showCnclForm}
-                  deleteList={deleteList}
+              {lists.length === 0 && (
+                <h1 className="no-list">Zatím nemáš žádné seznamy.</h1>
+              )}
+              {favoriteLists.length > 0 && (
+                <>
+                  <h1>Oblíbené</h1>
+                  {favoriteLists.map((list) => (
+                    <ListCard
+                      key={list.id}
+                      list={list}
+                      onClose={handleCloseDelete}
+                      isMenuOpen={activeMenu === list.id}
+                      setisMenuOpen={setActiveMenu}
+                      onFavorite={toggleFavorite}
+                      onMenuClick={handleMenuClick}
+                      setEditCurList={setEditCurList}
+                      onDelete={handleDeleteClick}
+                      setEditName={setEditName}
+                      selectedList={selectedList}
+                      showCnclForm={showCnclForm}
+                      deleteList={deleteList}
+                    />
+                  ))}
+                </>
+              )}
+              {normalLists.length > 0 && (
+                <>
+                  <h1>Ostatní</h1>
+                  {normalLists.map((list) => (
+                    <ListCard
+                      key={list.id}
+                      list={list}
+                      onClose={handleCloseDelete}
+                      isMenuOpen={activeMenu === list.id}
+                      onFavorite={toggleFavorite}
+                      onMenuClick={handleMenuClick}
+                      setEditCurList={setEditCurList}
+                      onDelete={handleDeleteClick}
+                      setEditName={setEditName}
+                      selectedList={selectedList}
+                      showCnclForm={showCnclForm}
+                      deleteList={deleteList}
+                    />
+                  ))}
+                </>
+              )}
+
+              {showForm && (
+                <ListDialog
+                  name={name}
+                  setName={setName}
+                  onSubmit={handleSubmit}
+                  setShowForm={setShowForm}
+                  title={"Nový seznam"}
+                  button={"Vytvořit"}
                 />
-              ))}
-            </>
-          )}
-          {normalLists.length > 0 && (
-            <>
-              <h1>Ostatní</h1>
-              {normalLists.map((list) => (
-                <ListCard
-                  key={list.id}
-                  list={list}
-                  onClose={handleCloseDelete}
-                  isMenuOpen={activeMenu === list.id}
-                  onFavorite={toggleFavorite}
-                  onMenuClick={handleMenuClick}
-                  setEditCurList={setEditCurList}
-                  onDelete={handleDeleteClick}
-                  setEditName={setEditName}
-                  selectedList={selectedList}
-                  showCnclForm={showCnclForm}
-                  deleteList={deleteList}
+              )}
+
+              {editCurList && (
+                <ListDialog
+                  name={editName}
+                  setName={setEditName}
+                  onSubmit={() => editList(selectedList.id)}
+                  setShowForm={setEditCurList}
+                  title="Změna názvu"
+                  button="Změnit"
                 />
-              ))}
+              )}
             </>
           )}
           <button className="add-list-card" onClick={() => setShowForm(true)}>
             + Nový seznam
           </button>
-
-          {showForm && (
-            <ListDialog
-              name={name}
-              setName={setName}
-              onSubmit={handleSubmit}
-              setShowForm={setShowForm}
-              title={"Nový seznam"}
-              button={"Vytvořit"}
-            />
-          )}
-
-          {editCurList && (
-            <ListDialog
-              name={editName}
-              setName={setEditName}
-              onSubmit={() => editList(selectedList.id)}
-              setShowForm={setEditCurList}
-              title="Změna názvu"
-              button="Změnit"
-            />
-          )}
         </div>
       </div>
     </>

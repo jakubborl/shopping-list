@@ -19,6 +19,7 @@ export default function Form() {
   const completedTasks = array.filter((task) => task.completed === 1);
   const [animatingId, setAnimatingId] = useState(null);
   const [editCurItem, setEditCurItem] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const modalRef = useRef();
 
@@ -36,11 +37,17 @@ export default function Form() {
   }, [id]);
 
   const fetchData = async () => {
-    const response = await api.get(
-      `${import.meta.env.VITE_API_URL}/lists/${id}/items`
-    );
+    try {
+      const response = await api.get(
+        `${import.meta.env.VITE_API_URL}/lists/${id}/items`
+      );
 
-    setArray(response.data);
+      setArray(response.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -149,103 +156,129 @@ export default function Form() {
             <button onClick={addPost}>Přidat</button>
           </div>
         </form>
-        <h2>Nesplněné</h2>
-        <ul className="active-tasks-list">
-          {activeTasks.map((task) => (
-            <li className="task-wrapper" key={task.id}>
-              <div className="task-card">
-                <>
-                  <div className="checkbox-wrapper-15">
-                    <input
-                      className="inp-cbx"
-                      id={`cbx-${task.id}`}
-                      type="checkbox"
-                      style={{ display: "none" }}
-                      checked={task.completed === 1 || animatingId === task.id}
-                      onChange={() => toggleCompleted(task.id, task.completed)}
-                    />
-                    <label className="cbx" htmlFor={`cbx-${task.id}`}>
-                      <span>
-                        <svg width="12px" height="9px" viewBox="0 0 12 9">
-                          <polyline points="1 5 4 8 11 1"></polyline>
-                        </svg>
-                      </span>
-                      <span>{task.title}</span>
-                    </label>
-                  </div>
-                  <button
-                    className="btn-vertical"
-                    onClick={(e) => handleMenuClick(e, task)}
-                  >
-                    <MoreVertical />
-                  </button>
-                </>
-              </div>
-              {activeMenu === task.id && (
-                <ActionMenu
-                  onEdit={() => {
-                    setEditingId(task.id);
-                    setEditTitle(task.title);
-                  }}
-                  onDelete={() => {
-                    deletePost(task.id);
-                  }}
-                  divName="menu"
-                  onShowMenu={() => setActiveMenu(null)}
-                />
-              )}
-            </li>
-          ))}
-        </ul>
-        <h2 className="completed-title">Splněné</h2>
-        <ul className="active-tasks-list">
-          {completedTasks.map((task) => (
-            <li className="task-wrapper" key={task.id}>
-              <div className="task-card">
-                <div className="checkbox-wrapper-15">
-                  <input
-                    className="inp-cbx"
-                    id={`cbx-${task.id}`}
-                    type="checkbox"
-                    style={{ display: "none" }}
-                    checked={task.completed === 1 || animatingId === task.id}
-                    onChange={() => toggleCompleted(task.id, task.completed)}
-                  />
-                  <label className="cbx" htmlFor={`cbx-${task.id}`}>
-                    <span>
-                      <svg width="12px" height="9px" viewBox="0 0 12 9">
-                        <polyline points="1 5 4 8 11 1"></polyline>
-                      </svg>
-                    </span>
-                    <span>
-                      {task.title} {"| "}
-                      {task.completed}
-                    </span>
-                  </label>
-                </div>
-                <button
-                  className="btn-vertical"
-                  onClick={(e) => handleMenuClick(e, task)}
-                >
-                  <MoreVertical />
-                </button>
-              </div>
-              {activeMenu === task.id && (
-                <ActionMenu
-                  onEdit={() => {
-                    setEditingId(task.id);
-                    setEditTitle(task.title);
-                  }}
-                  onDelete={() => {
-                    deletePost(task.id);
-                  }}
-                  divName={"menu"}
-                  onShowMenu={() => setActiveMenu(null)}
-                />
-              )}
-            </li>
-          ))}
-        </ul>
+        {loading ? (
+          <div className="loading">
+            <div className="spinner"></div>
+          </div>
+        ) : (
+          <>
+            {array.length === 0 ? (
+              <h1 className="no-list">Zatím nemáš žádné úkoly.</h1>
+            ) : (
+              <>
+                <h2>Nesplněné</h2>
+                <ul className="active-tasks-list">
+                  {activeTasks.map((task) => (
+                    <li className="task-wrapper" key={task.id}>
+                      <div className="task-card">
+                        <>
+                          <div className="checkbox-wrapper-15">
+                            <input
+                              className="inp-cbx"
+                              id={`cbx-${task.id}`}
+                              type="checkbox"
+                              style={{ display: "none" }}
+                              checked={
+                                task.completed === 1 || animatingId === task.id
+                              }
+                              onChange={() =>
+                                toggleCompleted(task.id, task.completed)
+                              }
+                            />
+                            <label className="cbx" htmlFor={`cbx-${task.id}`}>
+                              <span>
+                                <svg
+                                  width="12px"
+                                  height="9px"
+                                  viewBox="0 0 12 9"
+                                >
+                                  <polyline points="1 5 4 8 11 1"></polyline>
+                                </svg>
+                              </span>
+                              <span>{task.title}</span>
+                            </label>
+                          </div>
+                          <button
+                            className="btn-vertical"
+                            onClick={(e) => handleMenuClick(e, task)}
+                          >
+                            <MoreVertical />
+                          </button>
+                        </>
+                      </div>
+                      {activeMenu === task.id && (
+                        <ActionMenu
+                          onEdit={() => {
+                            setEditingId(task.id);
+                            setEditTitle(task.title);
+                          }}
+                          onDelete={() => {
+                            deletePost(task.id);
+                          }}
+                          divName="menu"
+                          onShowMenu={() => setActiveMenu(null)}
+                        />
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                <h2 className="completed-title">Splněné</h2>
+                <ul className="active-tasks-list">
+                  {completedTasks.map((task) => (
+                    <li className="task-wrapper" key={task.id}>
+                      <div className="task-card">
+                        <div className="checkbox-wrapper-15">
+                          <input
+                            className="inp-cbx"
+                            id={`cbx-${task.id}`}
+                            type="checkbox"
+                            style={{ display: "none" }}
+                            checked={
+                              task.completed === 1 || animatingId === task.id
+                            }
+                            onChange={() =>
+                              toggleCompleted(task.id, task.completed)
+                            }
+                          />
+                          <label className="cbx" htmlFor={`cbx-${task.id}`}>
+                            <span>
+                              <svg width="12px" height="9px" viewBox="0 0 12 9">
+                                <polyline points="1 5 4 8 11 1"></polyline>
+                              </svg>
+                            </span>
+                            <span>
+                              {task.title} {"| "}
+                              {task.completed}
+                            </span>
+                          </label>
+                        </div>
+                        <button
+                          className="btn-vertical"
+                          onClick={(e) => handleMenuClick(e, task)}
+                        >
+                          <MoreVertical />
+                        </button>
+                      </div>
+                      {activeMenu === task.id && (
+                        <ActionMenu
+                          onEdit={() => {
+                            setEditingId(task.id);
+                            setEditTitle(task.title);
+                          }}
+                          onDelete={() => {
+                            deletePost(task.id);
+                          }}
+                          divName={"menu"}
+                          onShowMenu={() => setActiveMenu(null)}
+                        />
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}{" "}
+          </>
+        )}
       </div>
       <>
         {editingId && (
