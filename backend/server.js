@@ -31,11 +31,6 @@ async function initDatabase() {
     password_hash TEXT NOT NULL
   );`);
 
-  await db.query(`
-  ALTER TABLE lists
-  DROP CONSTRAINT lists_name_key;
-`);
-
   const itemColumns = await db.query(`
     SELECT column_name
     FROM information_schema.columns
