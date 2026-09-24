@@ -9,6 +9,7 @@ import Register from "./Register";
 import "./index.css";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import Nastaveni from "./Nastaveni";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
@@ -53,6 +54,10 @@ function App() {
             <Route
               path="/list/:id"
               element={isLoggedIn ? <Form /> : <Navigate to="/login" />}
+            />
+            <Route
+              path="/settings"
+              element={isLoggedIn ? <Nastaveni /> : <Navigate to="/login" />}
             />
           </Routes>
         </main>

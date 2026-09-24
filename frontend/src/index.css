@@ -7,6 +7,21 @@
   --radius: 12px;
   --primary: #4338ca;
 }
+
+/* .settings {
+  width: 700px;
+  max-width: calc(100% - 60px);
+  min-height: 70vh;
+
+  margin: 30px auto;
+
+  background-color: white;
+  border-radius: 18px;
+  padding: 30px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .18);
+
+  box-sizing: border-box;
+} */
 .spinner {
   width: 30px;
   height: 30px;
@@ -77,10 +92,33 @@
   flex-direction: column;
   width: 180px;
   padding: 10px;
-  gap: 10px;
+  
   background: white;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+.logout-button {
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 180px;
+  padding: 12px 18px;
+  height: 44px;
+  gap: 10px;
+  border: none;
+  border-radius: 1px;
+
+  background: white;
+  color: var(--primary);
+  
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  
+  cursor: pointer;
+
+  transition: 0.15s ease;
 }
 
 .completed-title{
@@ -173,7 +211,7 @@
   cursor: pointer;
 }
 .page {
-  min-height: 100vh;
+  min-height: 80vh;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -210,6 +248,7 @@
 
 main {
   flex: 1;
+  padding-top: 64px;
 }
 .lednice{
   width: 100%;
@@ -416,29 +455,7 @@ main {
   margin-bottom: 20px;
   
 }
-.logout-button {
-  
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 180px;
-  padding: 12px 18px;
-  height: 44px;
-gap: 10px;
-  border: none;
-  border-radius: 1px;
 
-  background: white;
-  color: var(--primary);
-  
-  font-size: 15px;
-  font-weight: 500;
-  text-decoration: none;
-  
-  cursor: pointer;
-
-  transition: 0.15s ease;
-}
 
 .logout-button:hover {
   transform: translateY(-1px);
@@ -817,7 +834,7 @@ ul li::before{
 }
 
 .login-page {
-  min-height: 100vh;
+  min-height: 80vh;
   display: flex;
   align-items: center;
   justify-content: center;

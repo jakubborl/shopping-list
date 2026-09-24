@@ -54,9 +54,13 @@ function Navbar({ onLogout }) {
             {showUserMenu && (
               <div className="user-menu">
                 <span className="user-email">{user.email}</span>
-                <button className="logout-button">
+                <Link
+                  to="/settings"
+                  className="logout-button"
+                  onClick={() => setShowUserMenu(false)}
+                >
                   <Settings /> Nastavení
-                </button>
+                </Link>
                 <button onClick={handleLogout} className="logout-button">
                   <LogOut /> Odhlásit se
                 </button>

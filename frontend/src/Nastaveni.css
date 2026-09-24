@@ -1,0 +1,128 @@
+.settings {
+    width: 700px;
+    max-width: calc(100% - 40px);
+    margin: 50px auto;
+    padding: 35px;
+    min-height: 70vh;
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .08);
+    box-sizing: border-box;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .settings h1 {
+    margin: 0 0 35px;
+    font-size: 28px;
+  }
+  .theme-toggle {
+  width: 50px;
+  height: 28px;
+  padding: 3px;
+
+  border: none;
+  border-radius: 20px;
+
+  background: #e9e9e9;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+
+  transition: background-color 0.25s ease;
+}
+
+.toggle-circle {
+  width: 22px;
+  height: 22px;
+
+  border-radius: 50%;
+  background: white;
+
+  transition: transform 0.25s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.theme-toggle.dark {
+  background: #4338ca;
+}
+
+.theme-toggle.dark .toggle-circle {
+  transform: translateX(22px);
+}
+  
+  .settings-section {
+    margin-bottom: 35px;
+  }
+  
+  .settings-section h2 {
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+  }
+  
+  .settings-row {
+    min-height: 65px;
+    padding: 15px 0;
+  
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  
+    border-top: 1px solid #e9e9e9;
+  }
+
+  .darkmode-section{
+    
+    min-height: 65px;
+    padding: 15px 0;
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    border-top: 1px solid #e9e9e9;
+      
+  }
+  
+  .settings-row h3,.darkmode-section h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+  }
+  
+  .settings-row p,.darkmode-section p {
+    margin: 0;
+    font-size: 13px;
+    color: #888;
+  }
+
+  .settings-row button {
+    border: none;
+    border-radius: 8px;
+    padding: 9px 14px;
+    background: #4338ca;
+    color: white;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .settings-row button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(67, 56, 202, 0.15);
+  }
+
+  .settings-section.danger {
+    margin-top: 45px;
+  }
+  
+  .settings-section.danger h2 {
+    color: #dc2626;
+  }
+  
+  .settings-section.danger button {
+    background: #dc2626;
+  }

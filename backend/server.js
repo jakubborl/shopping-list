@@ -529,6 +529,66 @@ app.post("/register", async (req, res) => {
     });
   }
 });
+app.patch("/me/password", authenticateToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        error: "Stávající a nové heslo jsou povinné",
+      });
+    }
+
+    const result = await db.query(
+      `
+      SELECT password_hash
+      FROM users
+      WHERE id = $1
+      `,
+      [req.userId]
+    );
+
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(404).json({
+        error: "Uživatel nebyl nalezen",
+      });
+    }
+
+    const passwordMatch = await bcrypt.compare(
+      currentPassword,
+      user.password_hash
+    );
+
+    if (!passwordMatch) {
+      return res.status(401).json({
+        error: "Nesprávné heslo",
+      });
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+    await db.query(
+      `
+      UPDATE users
+      SET password_hash = $1
+      WHERE id = $2
+      `,
+      [newPasswordHash, req.userId]
+    );
+
+    res.json({
+      message: "Změna hesla úspěšná",
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "Chyba databáze",
+    });
+  }
+});
 
 app.get("/me", authenticateToken, async (req, res) => {
   try {

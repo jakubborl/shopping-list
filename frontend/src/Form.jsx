@@ -18,7 +18,7 @@ export default function Form() {
   const activeTasks = array.filter((task) => task.completed === 0);
   const completedTasks = array.filter((task) => task.completed === 1);
   const [animatingId, setAnimatingId] = useState(null);
-  const [editCurItem, setEditCurItem] = useState(false);
+
   const [loading, setLoading] = useState(true);
 
   const modalRef = useRef();
@@ -44,7 +44,7 @@ export default function Form() {
 
       setArray(response.data);
     } catch (error) {
-      console.log(error);
+      console.log("ERROR:", error);
     } finally {
       setLoading(false);
     }

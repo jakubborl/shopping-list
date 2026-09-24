@@ -21,12 +21,16 @@ export default function Home() {
   const favoriteLists = lists.filter((list) => list.favorite === 1);
   const normalLists = lists.filter((list) => list.favorite === 0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   console.log("bezne:", normalLists);
   console.log("oblibene:", favoriteLists);
   const modalRef = useRef();
 
   const fetchLists = async () => {
+    setLoading(true);
+    setError(null);
+
     try {
       const response = await api.get(`${import.meta.env.VITE_API_URL}/lists`);
 
@@ -34,7 +38,7 @@ export default function Home() {
 
       setLists(response.data);
     } catch (error) {
-      console.log(error);
+      setError(error.response?.data?.error || "Nepodařilo se načíst seznamy.");
     } finally {
       setLoading(false);
     }
@@ -135,6 +139,8 @@ export default function Home() {
         <div className="homepage">
           {loading ? (
             <div className="spinner"></div>
+          ) : error ? (
+            <div className="error">{error}</div>
           ) : (
             <>
               {lists.length === 0 && (
